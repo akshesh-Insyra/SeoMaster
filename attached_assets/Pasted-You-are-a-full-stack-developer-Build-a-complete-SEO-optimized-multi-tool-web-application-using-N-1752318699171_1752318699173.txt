@@ -1,0 +1,164 @@
+You are a full-stack developer. Build a complete, SEO-optimized multi-tool web application using **Next.js** and **Tailwind CSS**.
+
+This site is a productivity tools hub with 6 tools, each hosted on its own dedicated route. The application should have a clean, modern, minimal UI with soft animations, good structure, SEO-ready pages, and placeholder spaces for future ad placement (AdSense banners).
+
+---
+
+### 🌐 General Website Requirements:
+
+**Tech Stack:**
+- Next.js (Pages Router)
+- Tailwind CSS (modern, utility-first layout)
+- Framer Motion (for subtle fade, hover animations)
+- React Icons (optional for UI polish)
+- no need for type scrip don't use it. make it simple with js/jsx
+- Also use hero UI if possible.
+
+**Site Structure:**
+
+1. `/` (Home)
+   - Hero section: "INSYRA Tools – Free Online Utilities"
+   - Subheading with description of what site does
+   - Featured Tools section (show any 3 tools)
+   - “View All Tools” button (scroll or navigate to `/services`)
+
+2. `/services` (All Tools Overview Page)
+   - Grid of all 6 tools
+   - Each card includes:
+     - Icon or tool image
+     - Title
+     - Short description
+     - “Open Tool” button → navigates to that tool’s route
+
+3. `/merge-pdf`
+4. `/pdf-password-remover`
+5. `/invoice-generator`
+6. `/text-case-converter`
+7. `/code-commenting-tool`
+8. `/image-converter`
+
+Each tool page includes full working UI & functionality.
+
+---
+
+### 🧩 Components to Create:
+
+- `Header.jsx` – site-wide navbar with logo, nav links
+- `Footer.jsx` – with site credits, terms/privacy links
+- `ToolCard.jsx` – reusable card for services grid
+- `AdSlot.jsx` – placeholder for AdSense-ready boxes (dashed border + label)
+- `ToolLayout.jsx` – shared layout for all tool pages (with ad slots)
+
+---
+
+### 🧰 Functionality for Each Tool:
+
+#### 1. **Merge PDF**
+- Upload multiple PDFs
+- Merge into one using `pdf-lib`
+- Download merged file
+- Drag-drop upload and remove files
+- `AdSlot` components: top, sidebar, bottom
+
+#### 2. **PDF Password Remover**
+- Upload password-protected PDF
+- Enter password manually
+- Decrypt and download unlocked version
+- Display disclaimer: “Only use this tool for files you own”
+- `pdf-lib` or `PDF.js`
+
+#### 3. **Invoice Generator**
+- Form input: sender, recipient, item rows, tax
+- Auto-total calculation
+- Export to PDF using `pdfmake` or `jspdf`
+- “Download Invoice” button
+- Optional: Email invoice field
+- Clean printable layout
+
+#### 4. **Text Case Converter**
+- Textarea input
+- Convert to: UPPERCASE, lowercase, Sentence case, Capitalized
+- Copy to clipboard buttons
+- Instant conversion without API
+
+#### 5. **Code Commenting Tool**
+- Textarea for code input
+- Optional: dropdown to choose language (JS, Python, C++)
+- Use OpenAI API or rule-based logic to add comments
+- Display side-by-side original + commented code
+- Safe code formatting
+
+#### 6. **Image Converter (HEIC → JPG/PNG)**
+- Upload `.heic` file
+- Choose output format: JPG, PNG
+- Convert and allow download
+- Use `sharp`, `heic-convert`, or browser-compatible lib
+- Server-side API route or WASM approach
+
+---
+
+### 🎨 UI & Design Notes:
+
+- Use Tailwind's rounded corners (`rounded-2xl`), soft shadows (`shadow-lg`)
+- Smooth transitions (`hover:scale-105`, `transition-all`)
+- All cards and inputs should be fully mobile responsive
+- Use max-width containers with padding for spacing
+- Minimal color scheme (white, gray, accent blue)
+
+---
+
+### 📢 Ad Placeholder Strategy:
+
+On each tool page:
+- Add `<AdSlot slotName="Top Banner Ad" />` after tool heading
+- Add `<AdSlot slotName="Side Square Ad" />` beside main action area
+- Add `<AdSlot slotName="Bottom Ad" />` before footer
+
+These are placeholders styled as dashed bordered boxes. Actual AdSense code can be injected later.
+
+---
+
+### 🔍 SEO Requirements:
+
+- Each page should have a proper `<title>`, `<meta name="description">`, and canonical URL
+- Use `next/head` inside each tool page for SEO tags
+- Add Open Graph and Twitter Card tags on homepage and services
+- Schema markup optional but good to include
+
+---
+
+### 🗂 Folder Structure:
+/pages
+index.js // Homepage
+services.js // All Tools
+/merge-pdf/index.js
+/pdf-password-remover/index.js
+/invoice-generator/index.js
+/text-case-converter/index.js
+/code-commenting-tool/index.js
+/image-converter/index.js
+/components
+Header.jsx
+Footer.jsx
+ToolCard.jsx
+ToolLayout.jsx
+AdSlot.jsx
+... (any tool-specific subcomponents)
+/utils
+mergePdf.js
+decryptPdf.js
+generateInvoice.js
+convertHeic.js
+formatTextCase.js
+commentCode.js
+/public
+/images (for tool icons or previews)
+/styles
+globals.css
+
+
+### ✅ Output:
+- A fully functional multi-tool Next.js website
+- 6 tool pages with interactive logic and modular code
+- Homepage and Services page
+- Basic SEO, mobile responsiveness, and ad placeholders
