@@ -95,3 +95,13 @@
     @apply flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg;
   }
 }
+
+.glow-green {
+  text-shadow: 0 0 8px #22c55e;
+}
+.glow-cyan {
+  text-shadow: 0 0 8px #22d3ee;
+}
+.glow-pink {
+  text-shadow: 0 0 8px #f472b6;
+}
