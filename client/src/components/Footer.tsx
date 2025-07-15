@@ -1,64 +1,208 @@
 import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { Twitter, Linkedin } from "lucide-react";
+import { useState, useEffect } from "react"; // Import useState and useEffect
 
 export default function Footer() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (event) => {
+      // Get the position relative to the footer itself
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const rect = footer.getBoundingClientRect();
+        setMousePosition({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        });
+      }
+    };
+
+    const footerElement = document.querySelector('footer');
+    if (footerElement) {
+      footerElement.addEventListener('mousemove', handleMouseMove);
+    } else {
+      // Fallback if footer is not immediately available on mount
+      // This might make the flare appear across the whole body until footer loads
+      document.body.addEventListener('mousemove', handleMouseMove);
+    }
+
+    return () => {
+      if (footerElement) {
+        footerElement.removeEventListener('mousemove', handleMouseMove);
+      } else {
+        document.body.removeEventListener('mousemove', handleMouseMove);
+      }
+    };
+  }, []); // Empty dependency array means this runs once on mount
+
   return (
-    <footer className="bg-slate-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <motion.footer
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="relative overflow-hidden bg-gradient-to-br from-[#1A1C2C] via-[#141624] to-[#0E101A] text-white py-12 border-t border-[#202230] footer-glossy-effect"
+      style={{
+        '--mouse-x': `${mousePosition.x}px`,
+        '--mouse-y': `${mousePosition.y}px`,
+      }}
+    >
+      {/* Flare Cursor Element */}
+      <div className="footer-flare-cursor"></div>
+
+      {/* Ensure content is above the flare and glossy overlay */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* Branding */}
           <div className="md:col-span-2">
-            <h3 className="text-2xl font-bold text-white mb-4">INSYRA Tools</h3>
-            <p className="text-slate-300 mb-4">
-              Free online utilities to boost your productivity. All tools are secure, 
-              client-side processed, and completely free to use.
+            <h3 className="text-2xl font-extrabold mb-4 tracking-wide">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00A389] to-[#FFD700]">
+                INSYRA Tools
+              </span>
+            </h3>
+            <p className="text-slate-400 mb-4 text-sm">
+              Free online utilities to boost your productivity. Client-side,
+              fast, and secure.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                </svg>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-                </svg>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-              </a>
+              {[
+                { icon: Twitter, url: "https://twitter.com" },
+                { icon: Linkedin, url: "https://linkedin.com" },
+              ].map((social, idx) => (
+                <a
+                  key={idx}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-[#202230] text-slate-300 hover:text-[#00A389] hover:shadow-lg transition-all duration-200"
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.2 }}
+                    transition={{ type: "spring" }}
+                  >
+                    <social.icon size={20} />
+                  </motion.div>
+                </a>
+              ))}
             </div>
           </div>
-          
+
+          {/* Tools */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Tools</h4>
-            <ul className="space-y-2 text-slate-300">
-              <li><Link href="/merge-pdf" className="hover:text-white transition-colors">PDF Merger</Link></li>
-              <li><Link href="/pdf-password-remover" className="hover:text-white transition-colors">Password Remover</Link></li>
-              <li><Link href="/invoice-generator" className="hover:text-white transition-colors">Invoice Generator</Link></li>
-              <li><Link href="/text-case-converter" className="hover:text-white transition-colors">Text Converter</Link></li>
-              <li><Link href="/code-commenting-tool" className="hover:text-white transition-colors">Code Comments</Link></li>
-              <li><Link href="/image-converter" className="hover:text-white transition-colors">Image Converter</Link></li>
+            <h4 className="text-lg font-semibold mb-4 text-[#00A389]">
+              Tools
+            </h4>
+            <ul className="space-y-2 text-slate-300 text-sm">
+              {[
+                { label: "PDF Merger", href: "/merge-pdf" },
+                { label: "Password Remover", href: "/pdf-password-remover" },
+                { label: "Invoice Generator", href: "/invoice-generator" },
+                { label: "Text Converter", href: "/text-case-converter" },
+                { label: "Code Comments", href: "/code-commenting-tool" },
+                { label: "Image Converter", href: "/image-converter" },
+              ].map((tool, idx) => (
+                <li key={idx}>
+                  <motion.div whileHover={{ x: 4 }}>
+                    <Link
+                      href={tool.href}
+                      className="hover:text-[#00A389] transition-colors"
+                    >
+                      {tool.label}
+                    </Link>
+                  </motion.div>
+                </li>
+              ))}
             </ul>
           </div>
-          
+
+          {/* Support */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Support</h4>
-            <ul className="space-y-2 text-slate-300">
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+            <h4 className="text-lg font-semibold mb-4 text-[#AF00C3]">
+              Support
+            </h4>
+            <ul className="space-y-2 text-slate-300 text-sm">
+              {[
+                "Help Center",
+                "Privacy Policy",
+                "Terms of Service",
+                "Contact Us",
+              ].map((item, idx) => (
+                <li key={idx}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="inline-block"
+                  >
+                    <a href="#" className="hover:text-[#AF00C3] transition-colors">
+                      {item}
+                    </a>
+                  </motion.div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        
-        <div className="border-t border-slate-800 mt-8 pt-8 text-center">
-          <p className="text-slate-400">
-            &copy; 2024 INSYRA Tools. All rights reserved. Built with ❤️ for productivity.
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-10 border-t border-[#202230] pt-6 text-center"
+        >
+          <p className="text-slate-500 text-sm">
+            &copy; 2025{" "}
+            <span className="text-[#FFD700] font-medium">INSYRA Tools</span>.
+            All rights reserved.
           </p>
-        </div>
+        </motion.div>
       </div>
-    </footer>
+
+      {/* Custom CSS for glossy effect and flare cursor */}
+      <style jsx>{`
+        /* Glossy Effect (subtle top highlight) */
+        .footer-glossy-effect::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 50%; /* Adjust height for desired highlight size */
+          background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.05), /* Subtle white light at top */
+            transparent
+          );
+          pointer-events: none; /* Allows clicks to pass through */
+          z-index: 0; /* Ensure it's behind the content but above the base background */
+        }
+
+        /* Flare Cursor Effect */
+        .footer-flare-cursor {
+          --size: 400px; /* Size of the flare */
+          --gradient-color-1: rgba(0, 163, 137, 0.4); /* Green accent */
+          --gradient-color-2: rgba(175, 0, 195, 0.4); /* Purple accent */
+          --gradient-color-3: transparent;
+
+          position: absolute;
+          left: var(--mouse-x);
+          top: var(--mouse-y);
+          width: var(--size);
+          height: var(--size);
+          transform: translate(-50%, -50%); /* Center the flare on the cursor */
+          background: radial-gradient(
+            circle at center,
+            var(--gradient-color-1) 0%,
+            var(--gradient-color-2) 30%,
+            var(--gradient-color-3) 70%
+          );
+          opacity: 0.2; /* Adjust opacity for desired intensity */
+          mix-blend-mode: screen; /* Blends nicely with dark background */
+          filter: blur(80px); /* Adjust blur for softness */
+          border-radius: 50%;
+          pointer-events: none; /* Critical: allows mouse events to pass through */
+          z-index: 1; /* Ensure it's above the glossy effect, below content */
+        }
+      `}</style>
+    </motion.footer>
   );
 }
