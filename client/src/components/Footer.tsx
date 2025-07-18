@@ -1,15 +1,14 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Twitter, Linkedin } from "lucide-react";
-import { useState, useEffect } from "react"; // Import useState and useEffect
+import { Twitter, Linkedin, Heart } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Footer() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (event) => {
-      // Get the position relative to the footer itself
-      const footer = document.querySelector('footer');
+      const footer = document.getElementById("main-footer");
       if (footer) {
         const rect = footer.getBoundingClientRect();
         setMousePosition({
@@ -19,49 +18,57 @@ export default function Footer() {
       }
     };
 
-    const footerElement = document.querySelector('footer');
-    if (footerElement) {
-      footerElement.addEventListener('mousemove', handleMouseMove);
-    } else {
-      // Fallback if footer is not immediately available on mount
-      // This might make the flare appear across the whole body until footer loads
-      document.body.addEventListener('mousemove', handleMouseMove);
-    }
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      if (footerElement) {
-        footerElement.removeEventListener('mousemove', handleMouseMove);
-      } else {
-        document.body.removeEventListener('mousemove', handleMouseMove);
-      }
+      window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
+
+  const footerLinks = {
+    tools: [
+      { label: "PDF Merger", href: "/merge-pdf" },
+      { label: "Password Remover", href: "/pdf-password-remover" },
+      { label: "Invoice Generator", href: "/invoice-generator" },
+      { label: "Text Converter", href: "/text-case-converter" },
+      { label: "Image Converter", href: "/image-converter" },
+    ],
+    support: [
+      { label: "Help Center", href: "/help" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  };
 
   return (
     <motion.footer
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative overflow-hidden bg-gradient-to-br from-[#1A1C2C] via-[#141624] to-[#0E101A] text-white py-12 border-t border-[#202230] footer-glossy-effect"
+      id="main-footer"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative overflow-hidden bg-white text-gray-800 py-16 border-t border-gray-200"
       style={{
-        '--mouse-x': `${mousePosition.x}px`,
-        '--mouse-y': `${mousePosition.y}px`,
+        "--mouse-x": `${mousePosition.x}px`,
+        "--mouse-y": `${mousePosition.y}px`,
       }}
     >
-      {/* Flare Cursor Element */}
-      <div className="footer-flare-cursor"></div>
+      {/* Aurora Background Effect for Light Theme */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="aurora-bg-light"></div>
+      </div>
 
-      {/* Ensure content is above the flare and glossy overlay */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Branding */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          {/* Branding Section */}
           <div className="md:col-span-2">
-            <h3 className="text-2xl font-extrabold mb-4 tracking-wide">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00A389] to-[#FFD700]">
+            <h3 className="text-3xl font-extrabold mb-4 text-gray-900">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                 INSYRA Tools
               </span>
             </h3>
-            <p className="text-slate-400 mb-4 text-sm">
+            <p className="text-gray-600 mb-6 max-w-sm">
               Free online utilities to boost your productivity. Client-side,
               fast, and secure.
             </p>
@@ -75,11 +82,11 @@ export default function Footer() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 flex items-center justify-center rounded-full bg-[#202230] text-slate-300 hover:text-[#00A389] hover:shadow-lg transition-all duration-200"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:text-white transition-all duration-300 hover:bg-indigo-500 shadow-sm hover:shadow-lg hover:shadow-indigo-500/30"
                 >
                   <motion.div
-                    whileHover={{ scale: 1.2 }}
-                    transition={{ type: "spring" }}
+                    whileHover={{ scale: 1.1, rotate: -10 }}
+                    whileTap={{ scale: 0.9 }}
                   >
                     <social.icon size={20} />
                   </motion.div>
@@ -88,25 +95,18 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Tools */}
+          {/* Tools Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-[#00A389]">
+            <h4 className="text-lg font-semibold mb-5 text-emerald-500 tracking-wider">
               Tools
             </h4>
-            <ul className="space-y-2 text-slate-300 text-sm">
-              {[
-                { label: "PDF Merger", href: "/merge-pdf" },
-                { label: "Password Remover", href: "/pdf-password-remover" },
-                { label: "Invoice Generator", href: "/invoice-generator" },
-                { label: "Text Converter", href: "/text-case-converter" },
-                { label: "Code Comments", href: "/code-commenting-tool" },
-                { label: "Image Converter", href: "/image-converter" },
-              ].map((tool, idx) => (
+            <ul className="space-y-3">
+              {footerLinks.tools.map((tool, idx) => (
                 <li key={idx}>
                   <motion.div whileHover={{ x: 4 }}>
                     <Link
                       href={tool.href}
-                      className="hover:text-[#00A389] transition-colors"
+                      className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
                     >
                       {tool.label}
                     </Link>
@@ -116,26 +116,21 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Support Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-[#AF00C3]">
+            <h4 className="text-lg font-semibold mb-5 text-amber-500 tracking-wider">
               Support
             </h4>
-            <ul className="space-y-2 text-slate-300 text-sm">
-              {[
-                "Help Center",
-                "Privacy Policy",
-                "Terms of Service",
-                "Contact Us",
-              ].map((item, idx) => (
+            <ul className="space-y-3">
+              {footerLinks.support.map((item, idx) => (
                 <li key={idx}>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="inline-block"
-                  >
-                    <a href="#" className="hover:text-[#AF00C3] transition-colors">
-                      {item}
-                    </a>
+                  <motion.div whileHover={{ x: 4 }}>
+                    <Link
+                      href={item.href}
+                      className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
+                    >
+                      {item.label}
+                    </Link>
                   </motion.div>
                 </li>
               ))}
@@ -143,64 +138,31 @@ export default function Footer() {
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-10 border-t border-[#202230] pt-6 text-center"
-        >
-          <p className="text-slate-500 text-sm">
-            &copy; 2025{" "}
-            <span className="text-[#FFD700] font-medium">INSYRA Tools</span>.
-            All rights reserved.
+        <div className="mt-16 border-t border-gray-200 pt-8 text-center text-gray-500">
+          <p className="flex items-center justify-center gap-2">
+            &copy; 2025 INSYRA Tools. All rights reserved.
           </p>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Custom CSS for glossy effect and flare cursor */}
       <style jsx>{`
-        /* Glossy Effect (subtle top highlight) */
-        .footer-glossy-effect::before {
-          content: "";
+        .aurora-bg-light {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 50%; /* Adjust height for desired highlight size */
-          background: linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.05), /* Subtle white light at top */
-            transparent
-          );
-          pointer-events: none; /* Allows clicks to pass through */
-          z-index: 0; /* Ensure it's behind the content but above the base background */
-        }
-
-        /* Flare Cursor Effect */
-        .footer-flare-cursor {
-          --size: 400px; /* Size of the flare */
-          --gradient-color-1: rgba(0, 163, 137, 0.4); /* Green accent */
-          --gradient-color-2: rgba(175, 0, 195, 0.4); /* Purple accent */
-          --gradient-color-3: transparent;
-
-          position: absolute;
-          left: var(--mouse-x);
-          top: var(--mouse-y);
-          width: var(--size);
-          height: var(--size);
-          transform: translate(-50%, -50%); /* Center the flare on the cursor */
+          inset: 0;
           background: radial-gradient(
-            circle at center,
-            var(--gradient-color-1) 0%,
-            var(--gradient-color-2) 30%,
-            var(--gradient-color-3) 70%
-          );
-          opacity: 0.2; /* Adjust opacity for desired intensity */
-          mix-blend-mode: screen; /* Blends nicely with dark background */
-          filter: blur(80px); /* Adjust blur for softness */
-          border-radius: 50%;
-          pointer-events: none; /* Critical: allows mouse events to pass through */
-          z-index: 1; /* Ensure it's above the glossy effect, below content */
+              800px circle at var(--mouse-x) var(--mouse-y),
+              rgba(165, 180, 252, 0.2),
+              /* Soft Indigo */ transparent 40%
+            ),
+            radial-gradient(
+              600px circle at calc(var(--mouse-x) + 200px)
+                calc(var(--mouse-y) + 100px),
+              rgba(196, 181, 253, 0.2),
+              /* Soft Purple */ transparent 40%
+            );
+          mix-blend-mode: screen;
+          filter: blur(100px);
+          transition: background 0.2s ease-out;
         }
       `}</style>
     </motion.footer>

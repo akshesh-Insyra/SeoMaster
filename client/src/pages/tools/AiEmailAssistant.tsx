@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Loader2, Copy, Download } from "lucide-react";
+import { Mail, Loader2, Copy, Download, Sparkles } from "lucide-react"; // Added Sparkles for consistency
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,13 +8,21 @@ import { useToast } from "@/hooks/use-toast";
 import ToolLayout from "@/components/ToolLayout";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Light Theme Palette Notes:
+// - Page Background: bg-slate-50
+// - Card Background: bg-white
+// - Text: text-slate-800 (Primary), text-slate-700 (Secondary)
+// - Borders: border-slate-200/300
+// - Accent Gradient: Blue-500 to Emerald-500
+// - Tips/Info Accent: Amber
+
 export default function AiEmailAssistant() {
   const [prompt, setPrompt] = useState("");
   const [generatedEmail, setGeneratedEmail] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Framer Motion variants (reused from your TextGenerator)
+  // Framer Motion variants are theme-independent
   const cardInViewVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -24,36 +32,36 @@ export default function AiEmailAssistant() {
     },
   };
 
-  const generatedTextVariants = {
-    initial: { opacity: 0, y: 10 },
+  const resultVariants = {
+    initial: { opacity: 0, scale: 0.95, y: 10 },
     animate: {
       opacity: 1,
+      scale: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
+    exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
   };
 
+  // --- Core logic functions (handleGenerate, handleCopy, etc.) are unchanged ---
   const handleGenerateEmail = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Empty Prompt",
-        description: "Please enter a description for your email.",
+        description: "Please enter a description for the email you need.",
         variant: "destructive",
       });
       return;
     }
-
     setIsGenerating(true);
-    setGeneratedEmail(""); // Clear previous result for animation
+    setGeneratedEmail(""); // Clear previous result
 
     try {
-      let chatHistory = [];
-      // Adjust the prompt to guide Gemini for email generation
-      const emailPrompt = `Draft a professional email based on the following request: "${prompt}". Ensure it's polite, clear, and well-structured.`;
-      chatHistory.push({ role: "user", parts: [{ text: emailPrompt }] });
-      const payload = { contents: chatHistory };
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // Ensure this is correctly set up in your .env
+      const emailPrompt = `Draft a professional email based on the following request: "${prompt}". Ensure it's polite, clear, well-structured, and ready to send.`;
+      const payload = {
+        contents: [{ role: "user", parts: [{ text: emailPrompt }] }],
+      };
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
@@ -64,24 +72,18 @@ export default function AiEmailAssistant() {
 
       const result = await response.json();
 
-      if (
-        result.candidates &&
-        result.candidates.length > 0 &&
-        result.candidates[0].content &&
-        result.candidates[0].content.parts &&
-        result.candidates[0].content.parts.length > 0
-      ) {
+      if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
         const text = result.candidates[0].content.parts[0].text;
         setGeneratedEmail(text);
         toast({
-          title: "Success!",
-          description: "Email drafted successfully.",
+          title: "Email Drafted!",
+          description: "Your new email is ready below.",
         });
       } else {
         console.error("Unexpected API response structure:", result);
         toast({
           title: "Generation Failed",
-          description: "Could not draft email. Please try again.",
+          description: "Could not draft the email. Please try again.",
           variant: "destructive",
         });
       }
@@ -89,8 +91,7 @@ export default function AiEmailAssistant() {
       console.error("Error generating email:", error);
       toast({
         title: "Generation Error",
-        description:
-          "An error occurred while connecting to the AI. Please try again.",
+        description: "An error occurred while contacting the AI. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -98,102 +99,102 @@ export default function AiEmailAssistant() {
     }
   };
 
-  const handleCopy = async (text: string, type: string) => {
+  const handleCopy = async (text: string) => {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: "Copied!", description: `${type} copied to clipboard.` });
+      toast({ title: "Copied!", description: "Email content copied to clipboard." });
     } catch (error) {
-      // Fallback for older browsers or iframes without clipboard API access
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand("copy");
-        toast({
-          title: "Copied!",
-          description: `${type} copied to clipboard (fallback).`,
-        });
-      } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Unable to copy to clipboard.",
-          variant: "destructive",
-        });
-      } finally {
-        document.body.removeChild(textarea);
-      }
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          toast({
+            title: "Copied!",
+            description: "Email content copied to clipboard (fallback).",
+          });
+        } catch (err) {
+          toast({
+            title: "Copy failed",
+            description: "Unable to copy to clipboard.",
+            variant: "destructive",
+          });
+        } finally {
+          document.body.removeChild(textarea);
+        }
     }
   };
 
-  const handleDownload = (text: string, filename: string) => {
+  const handleDownload = (text: string) => {
     if (!text) return;
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename;
+    a.download = "ai-generated-email.txt";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
       title: "Downloaded!",
-      description: "Email file downloaded successfully.",
+      description: "Email saved as a .txt file.",
     });
   };
 
   return (
     <ToolLayout
       title="AI Email Assistant"
-      description="Draft professional emails and responses quickly with AI."
-      icon={<Mail className="text-white text-2xl" />}
-      iconBg="bg-gradient-to-br from-[#AF00C3] to-[#FFD700]" // Adjusted theme accent
+      description="Draft professional emails and responses in seconds with AI."
+      icon={<Mail className="text-white" />}
+      iconBg="bg-gradient-to-br from-blue-500 to-emerald-500"
     >
-      <div className="space-y-6">
-        {/* Input Prompt Card */}
+      <div className="space-y-8">
+        {/* Input Card */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#AF00C3]/10 text-white">
+          <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-blue-500/10">
             <CardHeader>
-              <CardTitle className="text-[#AF00C3]">Email Request</CardTitle>
+              <CardTitle className="text-blue-600">
+                What's this email about?
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label
-                htmlFor="email-prompt-textarea"
-                className="text-slate-400 mb-2 block"
-              >
-                Describe the email you want to send or the email you need to
-                respond to:
-              </Label>
-              <Textarea
-                id="email-prompt-textarea"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., 'Write an email to my team about the new project deadline' or 'Respond to a customer asking for a refund for a damaged product, offer a replacement.'"
-                rows={6}
-                className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-[#AF00C3]/50 focus:border-[#AF00C3] rounded-md shadow-sm"
-              />
-              <div className="mt-4 text-center">
+              <div className="space-y-2">
+                <Label htmlFor="email-prompt-textarea" className="font-medium text-slate-700">
+                  Describe the email you want to send or the one you need to respond to:
+                </Label>
+                <Textarea
+                  id="email-prompt-textarea"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="e.g., 'Write an email to my team about the new project deadline' or 'Respond to a customer asking for a refund for a damaged product, offer a replacement.'"
+                  rows={6}
+                  className="w-full bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 rounded-md"
+                />
+              </div>
+              <div className="mt-6 text-center">
                 <Button
                   onClick={handleGenerateEmail}
                   disabled={isGenerating || !prompt.trim()}
                   size="lg"
-                  className="bg-gradient-to-r from-[#AF00C3] to-[#FFD700] hover:from-[#9600AA] hover:to-[#E6C200] text-white shadow-lg shadow-[#AF00C3]/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                  className="bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white shadow-lg shadow-blue-500/40 transform hover:scale-105 transition-all duration-300 rounded-full px-10 py-3 text-base font-semibold"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Drafting...
                     </>
                   ) : (
                     <>
-                      <Mail className="mr-2 h-4 w-4" /> Draft Email
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Draft Email
                     </>
                   )}
                 </Button>
@@ -204,70 +205,55 @@ export default function AiEmailAssistant() {
 
         {/* Generated Email Output Card */}
         <AnimatePresence mode="wait">
-          {generatedEmail && (
+          {(isGenerating || generatedEmail) && (
             <motion.div
+              key="result-card"
               initial="hidden"
               animate="visible"
               exit="hidden"
               variants={cardInViewVariants}
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
             >
-              <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#00A389]/10 text-white">
-                <CardHeader>
-                  <CardTitle className="text-[#00A389]">
+              <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-emerald-500/10">
+                <CardHeader className="flex flex-row justify-between items-center">
+                  <CardTitle className="text-emerald-700">
                     Generated Email
                   </CardTitle>
+                  <div className="flex gap-2">
+                     <Button onClick={() => handleCopy(generatedEmail)} disabled={!generatedEmail || isGenerating} size="sm" variant="outline" className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full">
+                        <Copy className="w-4 h-4 mr-2" /> Copy
+                    </Button>
+                    <Button onClick={() => handleDownload(generatedEmail)} disabled={!generatedEmail || isGenerating} size="sm" variant="outline" className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full">
+                        <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="min-h-[150px] p-4 bg-[#141624] border border-[#363A4D] rounded-md text-white whitespace-pre-wrap break-words overflow-auto max-h-96">
+                  <div className="min-h-[200px] p-4 bg-slate-50/70 border border-slate-200 rounded-lg max-h-[600px] overflow-y-auto">
                     <AnimatePresence mode="wait">
-                      {isGenerating ? (
-                        <motion.div
-                          key="loading-output"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center justify-center h-full text-slate-400"
+                      {isGenerating && !generatedEmail ? (
+                         <motion.div
+                            key="loading"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center justify-center min-h-[200px] text-slate-500"
                         >
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Drafting email...
+                            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
+                            <p className="font-semibold text-lg">Drafting your email...</p>
                         </motion.div>
                       ) : (
-                        <motion.p
-                          key={generatedEmail} // Key changes to trigger animation on text change
+                        <motion.div
+                          key="content"
                           initial="initial"
                           animate="animate"
                           exit="exit"
-                          variants={generatedTextVariants}
+                          variants={resultVariants}
+                          className="prose prose-sm lg:prose-base prose-slate max-w-none whitespace-pre-wrap"
                         >
                           {generatedEmail}
-                        </motion.p>
+                        </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
-                  <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      onClick={() =>
-                        handleCopy(generatedEmail, "Generated email")
-                      }
-                      size="sm"
-                      className="bg-gradient-to-r from-[#AF00C3] to-[#FFD700] hover:from-[#9600AA] hover:to-[#E6C200] text-white shadow-md shadow-[#AF00C3]/30 transition-all duration-200 rounded-full px-4 py-2"
-                      disabled={!generatedEmail}
-                    >
-                      <Copy className="w-4 h-4 mr-1" /> Copy
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        handleDownload(generatedEmail, "generated-email.txt")
-                      }
-                      size="sm"
-                      className="bg-gradient-to-r from-[#FFD700] to-[#AF00C3] text-black font-semibold hover:from-[#E6C200] hover:to-[#9600AA] shadow-md shadow-[#FFD700]/30 transition-all duration-200 rounded-full px-4 py-2"
-                      disabled={!generatedEmail}
-                    >
-                      <Download className="w-4 h-4 mr-1" /> Download
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -275,37 +261,25 @@ export default function AiEmailAssistant() {
           )}
         </AnimatePresence>
 
-        {/* Instructions/Tips Card */}
+        {/* Tips Card */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#FFD700]/10 text-white">
+          <Card className="bg-amber-50 border border-amber-200/80 rounded-xl shadow-lg shadow-amber-500/10">
             <CardContent className="p-6">
-              <h4 className="font-semibold text-[#FFD700] mb-3 text-lg">
-                Tips for Best Results:
-              </h4>
-              <ul className="text-slate-400 space-y-2 text-sm list-disc list-inside">
-                <li>
-                  Be specific about the purpose and recipient of the email.
-                </li>
-                <li>
-                  Mention the desired tone (e.g., formal, casual, urgent).
-                </li>
-                <li>
-                  Include key information or questions that need to be
-                  addressed.
-                </li>
-                <li>
-                  For responses, you can paste the original email for context.
-                </li>
-              </ul>
-              <p className="text-[#AF00C3] text-sm mt-4">
-                <strong>Note:</strong> Always review the generated email for
-                accuracy, tone, and suitability before sending.
-              </p>
+                <h4 className="font-semibold text-amber-700 mb-3 text-lg">
+                  Tips for Best Results
+                </h4>
+                <ul className="text-amber-900/80 space-y-2 text-sm list-disc list-outside ml-4">
+                  <li>Be specific about the purpose and recipient of the email.</li>
+                  <li>Mention the desired tone (e.g., formal, casual, urgent).</li>
+                  <li>Include key information or questions that need to be addressed.</li>
+                  <li>For responses, you can paste the original email for context.</li>
+                  <li><strong>Note:</strong> Always review the generated email before sending!</li>
+                </ul>
             </CardContent>
           </Card>
         </motion.div>

@@ -15,7 +15,7 @@ export default function ToolLayout({
   title,
   description,
   icon,
-  iconBg,
+  iconBg, // This prop might become less relevant if we use fixed gradients
 }: ToolLayoutProps) {
   // Framer Motion variants for section entrance
   const sectionVariants = {
@@ -28,10 +28,10 @@ export default function ToolLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white mt-[-50vh] pt-[50vh]">
+    // Changed main background to a very light one
+    // Adjusted mt-[-50vh] pt-[50vh] to mt-0 pt-16 for normal page flow with fixed header
+    <div className="min-h-screen bg-gray-50 text-gray-800 pt-16">
       <main className="py-8 sm:py-12 lg:py-16">
-        {" "}
-        {/* Responsive padding */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Tool Header */}
           <motion.div
@@ -41,14 +41,18 @@ export default function ToolLayout({
             variants={sectionVariants}
           >
             <div
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-[#00A389] to-[#FFD700] shadow-lg`} // Enhanced icon background
+              // Dynamic gradient for icon background, matching your brand colors
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg`}
             >
-              {icon}
+              {/* Icon color adjusted for light background, assuming it's an SVG or Lucide icon */}
+              {/* If the icon itself is a component, you might need to pass `className="text-white"` to it */}
+              <span className="text-white">{icon}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+            {/* Title and description text colors adjusted for light background */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
               {title}
             </h1>
-            <p className="text-gray-400 max-w-2xl mx-auto text-base sm:text-lg">
+            <p className="text-gray-600 max-w-2xl mx-auto text-base sm:text-lg">
               {description}
             </p>
           </motion.div>
@@ -87,32 +91,27 @@ export default function ToolLayout({
                   className="mb-6"
                 />
 
-                {/* Tool Features */}
-                <div className="bg-[#1A1C2C] border border-[#2d314d] rounded-xl p-6 shadow-lg">
-                  <h4 className="font-semibold text-white mb-4 text-lg">
+                {/* Tool Features - Changed background to light, border to subtle, text to dark/accent */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-md">
+                  <h4 className="font-semibold text-gray-800 mb-4 text-lg">
                     Tool Features
                   </h4>
-                  <ul className="space-y-3 text-sm text-slate-400">
-                    {" "}
-                    {/* Changed text-gray-400 to text-slate-400 */}
+                  <ul className="space-y-3 text-sm text-gray-600">
                     <li className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-[#00A389] mr-2 flex-shrink-0" />{" "}
-                      {/* Changed text-purple-400 to text-[#00A389] */}
+                      {/* CheckCircle icon color matching the vibrant green */}
+                      <CheckCircle className="w-5 h-5 text-emerald-500 mr-2 flex-shrink-0" />
                       Unlimited file size
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-[#00A389] mr-2 flex-shrink-0" />{" "}
-                      {/* Changed text-purple-400 to text-[#00A389] */}
+                      <CheckCircle className="w-5 h-5 text-emerald-500 mr-2 flex-shrink-0" />
                       Secure processing
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-[#00A389] mr-2 flex-shrink-0" />{" "}
-                      {/* Changed text-purple-400 to text-[#00A389] */}
+                      <CheckCircle className="w-5 h-5 text-emerald-500 mr-2 flex-shrink-0" />
                       No registration required
                     </li>
                     <li className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-[#00A389] mr-2 flex-shrink-0" />{" "}
-                      {/* Changed text-purple-400 to text-[#00A389] */}
+                      <CheckCircle className="w-5 h-5 text-emerald-500 mr-2 flex-shrink-0" />
                       100% free to use
                     </li>
                   </ul>

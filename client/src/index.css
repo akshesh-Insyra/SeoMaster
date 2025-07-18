@@ -105,3 +105,52 @@
 .glow-pink {
   text-shadow: 0 0 8px #f472b6;
 }
+
+/* Hero Section Flare Cursor Effect */
+#hero-section {
+  position: relative;
+}
+
+.hero-flare {
+  position: absolute;
+  top: var(--mouse-y);
+  left: var(--mouse-x);
+  width: 800px;
+  height: 800px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.15) 0%,
+    /* Soft blue */ rgba(168, 85, 247, 0.1) 30%,
+    /* Soft purple */ transparent 70%
+  );
+  filter: blur(150px);
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#hero-section:hover .hero-flare {
+  opacity: 1;
+}
+
+/* Animated Blob Keyframes */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 9s infinite cubic-bezier(0.6, 0.01, 0.4, 1);
+}

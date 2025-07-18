@@ -1,10 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card"; // Assuming these components are available
-import { AlertCircle } from "lucide-react";
-import { motion } from "framer-motion"; // Import motion from framer-motion
-import { Link } from "wouter"; // Assuming wouter is used for routing
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Link } from "wouter";
 
 export default function NotFound() {
-  // Framer Motion variants for the card animation
   const cardVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 50 },
     visible: {
@@ -12,15 +11,16 @@ export default function NotFound() {
       scale: 1,
       y: 0,
       transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        when: "beforeChildren", // Animate card before its children
+        type: "spring",
+        stiffness: 150,
+        damping: 20,
+        when: "beforeChildren",
+        staggerChildren: 0.1,
       },
     },
   };
 
-  // Framer Motion variants for text elements inside the card
-  const textVariants = {
+  const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -30,42 +30,56 @@ export default function NotFound() {
   };
 
   return (
-    <div className="min-h-[120vh] w-full flex items-center justify-center bg-[#1A1C2C] mt-[-50vh] pt-[50vh]"> {/* Apply main background color */}
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 p-4 relative overflow-hidden">
+      {/* Animated Gradient Blobs Background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-blue-300/50 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
+        <div className="absolute bottom-0 -right-1/4 w-96 h-96 bg-purple-300/50 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+      </div>
+
       <motion.div
-        className="w-full max-w-md mx-auto" // mx-auto for horizontal centering
+        className="w-full max-w-lg"
         initial="hidden"
         animate="visible"
         variants={cardVariants}
       >
-        <Card className="bg-[#1A1C2C] rounded-xl shadow-2xl border border-[#2d314d] text-white"> {/* Card background and border */}
-          <CardContent className="pt-6 p-6 sm:p-8">
+        <Card className="bg-white/70 backdrop-blur-md rounded-3xl shadow-2xl border border-gray-200/80">
+          <CardContent className="p-8 sm:p-12 text-center">
             <motion.div
-              className="flex items-center mb-4 gap-3"
-              variants={textVariants}
+              className="flex justify-center mb-6"
+              variants={itemVariants}
             >
-              <AlertCircle className="h-9 w-9 text-[#FFD700]" />{" "} {/* Icon color changed to yellow accent */}
-              <h1 className="text-3xl font-bold text-white">
-                404 Page Not Found
-              </h1>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-rose-500 shadow-lg">
+                <AlertTriangle className="h-10 w-10 text-white" />
+              </div>
             </motion.div>
-            <motion.p
-              className="mt-4 text-base text-slate-400 leading-relaxed" // Text color changed to slate-400
-              variants={textVariants}
-              transition={{ ...textVariants.visible.transition, delay: 0.2 }}
+
+            <motion.h1 
+              className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+              variants={itemVariants}
             >
-              The page you are looking for might have been removed, had its name
-              changed, or is temporarily unavailable. Please check the URL or
-              return to the homepage.
+              404 - Page Not Found
+            </motion.h1>
+
+            <motion.p
+              className="mt-4 text-base md:text-lg text-slate-600 leading-relaxed max-w-sm mx-auto"
+              variants={itemVariants}
+            >
+              The page you are looking for might have been removed or is temporarily unavailable.
             </motion.p>
+            
             <motion.div
-              className="mt-8 text-center"
-              variants={textVariants}
-              transition={{ ...textVariants.visible.transition, delay: 0.4 }}
+              className="mt-8"
+              variants={itemVariants}
             >
               <Link href="/">
-                <button className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:from-[#008C75] hover:to-[#E6C200] text-white rounded-full px-8 py-3 shadow-md hover:shadow-lg transition-all duration-300 font-semibold"> {/* Button gradient updated */}
-                  Go to Homepage
-                </button>
+                <motion.button 
+                  className="bg-indigo-600 text-white rounded-full px-8 py-3 font-semibold shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Return to Homepage
+                </motion.button>
               </Link>
             </motion.div>
           </CardContent>
