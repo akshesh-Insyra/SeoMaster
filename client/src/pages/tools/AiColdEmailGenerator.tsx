@@ -7,11 +7,10 @@ import {
   Copy,
   Download,
   Send,
-} from "lucide-react"; // Added Send icon
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -28,15 +27,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+// Light Theme Palette Notes:
+// - Page Background: bg-slate-50
+// - Card Background: bg-white
+// - Text: text-slate-800 (Primary), text-slate-600 (Secondary)
+// - Borders: border-slate-200/300
+// - Accent Gradient: Sky-500 to Indigo-500
+// - Tips/Info Accent: Amber
+
 export default function AiColdEmailGenerator() {
-  const [purpose, setPurpose] = useState("Networking"); // Default purpose
-  const [recipientContext, setRecipientContext] = useState(""); // Details about recipient/company
-  const [senderContext, setSenderContext] = useState(""); // Details about sender/what they offer
+  const [purpose, setPurpose] = useState("Networking");
+  const [recipientContext, setRecipientContext] = useState("");
+  const [senderContext, setSenderContext] = useState("");
   const [generatedEmail, setGeneratedEmail] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Framer Motion variants
+  // Framer Motion variants are theme-independent and remain the same
   const cardInViewVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -47,42 +54,48 @@ export default function AiColdEmailGenerator() {
   };
 
   const resultVariants = {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, scale: 0.95, y: 10 },
     animate: {
       opacity: 1,
+      scale: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      y: -10,
+      transition: { duration: 0.2, ease: "easeIn" },
+    },
   };
 
+  // --- Core logic functions (handleGenerate, handleCopy, handleDownload, handleReset) are unchanged ---
   const handleGenerateEmail = async () => {
     if (!purpose.trim() || !recipientContext.trim() || !senderContext.trim()) {
       toast({
         title: "Missing Information",
         description:
-          "Please select a purpose and provide details about both the recipient and yourself.",
+          "Please provide details for all fields to generate an email.",
         variant: "destructive",
       });
       return;
     }
-
     setIsGenerating(true);
-    setGeneratedEmail(null); // Clear previous result
+    setGeneratedEmail(null);
 
     try {
       const prompt = `Generate a professional and compelling cold email for the purpose of "${purpose}".
 
-      Here is some context about the recipient/company: "${recipientContext}".
-      Here is some context about me/my offering: "${senderContext}".
+        Here is some context about the recipient/company: "${recipientContext}".
+        Here is some context about me/my offering: "${senderContext}".
 
-      Structure the email with a clear subject line, a personalized opening (e.g., "Dear [Recipient Name],"), a concise body explaining the purpose and value proposition, and a clear call to action.
-      Keep it brief, impactful, and professional. Avoid overly generic phrases.`;
+        Structure the email with a clear subject line, a personalized opening (e.g., "Dear [Recipient Name],"), a concise body explaining the purpose and value proposition, and a clear call to action.
+        Keep it brief, impactful, and professional. Avoid overly generic phrases. Format the output as clean Markdown.`;
 
       const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       };
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // Ensure this is set up
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
@@ -90,28 +103,21 @@ export default function AiColdEmailGenerator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const geminiResult = await response.json();
 
-      if (
-        geminiResult.candidates &&
-        geminiResult.candidates.length > 0 &&
-        geminiResult.candidates[0].content &&
-        geminiResult.candidates[0].content.parts &&
-        geminiResult.candidates[0].content.parts.length > 0
-      ) {
+      if (geminiResult.candidates?.[0]?.content?.parts?.[0]?.text) {
         const emailText =
           geminiResult.candidates[0].content.parts[0].text.trim();
         setGeneratedEmail(emailText);
         toast({
           title: "Email Generated!",
-          description: "Your cold email is ready.",
+          description: "Your new cold email is ready below.",
         });
       } else {
         console.error("Unexpected API response structure:", geminiResult);
         toast({
           title: "Generation Failed",
-          description: "Could not generate email. Please try again.",
+          description: "Could not generate an email. Please try again.",
           variant: "destructive",
         });
       }
@@ -120,7 +126,7 @@ export default function AiColdEmailGenerator() {
       toast({
         title: "Generation Error",
         description:
-          "An error occurred while connecting to the AI. Please try again.",
+          "An error occurred while contacting the AI. Please check your connection and try again.",
         variant: "destructive",
       });
     } finally {
@@ -137,6 +143,7 @@ export default function AiColdEmailGenerator() {
         description: "Generated email copied to clipboard.",
       });
     } catch (error) {
+      // Fallback for older browsers
       const textarea = document.createElement("textarea");
       textarea.value = generatedEmail;
       document.body.appendChild(textarea);
@@ -192,10 +199,10 @@ export default function AiColdEmailGenerator() {
     <ToolLayout
       title="AI Cold Email Generator"
       description="Craft compelling and personalized cold emails for networking, sales, or job inquiries using AI."
-      icon={<Send className="text-white text-2xl" />} // Using Send icon
-      iconBg="bg-gradient-to-br from-purple-600 to-red-500" // A new vibrant gradient
+      icon={<Send className="text-white" />}
+      iconBg="bg-gradient-to-br from-sky-500 to-indigo-500"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Input Card */}
         <motion.div
           initial="hidden"
@@ -203,17 +210,16 @@ export default function AiColdEmailGenerator() {
           viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-purple-600/10 text-white">
+          <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-sky-500/10">
             <CardHeader>
-              <CardTitle className="text-purple-400">
-                Generate Your Cold Email
-              </CardTitle>
+              <CardTitle className="text-sky-700">Craft Your Email</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 md:col-span-2">
-                {" "}
-                {/* Purpose takes full width */}
-                <Label htmlFor="purpose-select" className="text-slate-400">
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="purpose-select"
+                  className="font-medium text-slate-700"
+                >
                   Purpose of the Email
                 </Label>
                 <Select
@@ -223,11 +229,11 @@ export default function AiColdEmailGenerator() {
                 >
                   <SelectTrigger
                     id="purpose-select"
-                    className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 rounded-md shadow-sm"
+                    className="w-full bg-white border-slate-300 text-slate-900 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 rounded-md"
                   >
                     <SelectValue placeholder="Select purpose" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#202230] text-white border border-[#363A4D]">
+                  <SelectContent className="bg-white text-slate-800 border-slate-200">
                     <SelectItem value="Networking">Networking</SelectItem>
                     <SelectItem value="Job Inquiry">Job Inquiry</SelectItem>
                     <SelectItem value="Sales Outreach">
@@ -245,60 +251,65 @@ export default function AiColdEmailGenerator() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="recipient-context-textarea"
-                  className="text-slate-400"
-                >
-                  About the Recipient / Company
-                </Label>
-                <Textarea
-                  id="recipient-context-textarea"
-                  value={recipientContext}
-                  onChange={(e) => setRecipientContext(e.target.value)}
-                  placeholder="e.g., 'Recipient is a Senior Product Manager at Google, company recently launched a new AI product.', 'Company is a startup in sustainable energy, I admire their work on solar panels.'"
-                  rows={6}
-                  className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 rounded-md shadow-sm"
-                  disabled={isGenerating}
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="recipient-context-textarea"
+                    className="font-medium text-slate-700"
+                  >
+                    About the Recipient / Company
+                  </Label>
+                  <Textarea
+                    id="recipient-context-textarea"
+                    value={recipientContext}
+                    onChange={(e) => setRecipientContext(e.target.value)}
+                    placeholder="e.g., 'A Senior PM at Google, company recently launched a new AI product.'"
+                    rows={6}
+                    className="w-full bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 rounded-md"
+                    disabled={isGenerating}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="sender-context-textarea"
+                    className="font-medium text-slate-700"
+                  >
+                    About Me / My Offering
+                  </Label>
+                  <Textarea
+                    id="sender-context-textarea"
+                    value={senderContext}
+                    onChange={(e) => setSenderContext(e.target.value)}
+                    placeholder="e.g., 'I run a SaaS tool that boosts team productivity by 30%.'"
+                    rows={6}
+                    className="w-full bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 rounded-md"
+                    disabled={isGenerating}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="sender-context-textarea"
-                  className="text-slate-400"
-                >
-                  About Me / My Offering
-                </Label>
-                <Textarea
-                  id="sender-context-textarea"
-                  value={senderContext}
-                  onChange={(e) => setSenderContext(e.target.value)}
-                  placeholder="e.g., 'I am a software engineer with 5 years of experience in AI/ML.', 'My company offers a new SaaS tool that boosts team productivity by 30%.', 'I'm looking for mentorship in product management.'"
-                  rows={6}
-                  className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 rounded-md shadow-sm"
-                  disabled={isGenerating}
-                />
-              </div>
-              <div className="md:col-span-2 text-center">
+
+              <div className="pt-2 text-center">
                 <Button
                   onClick={handleGenerateEmail}
                   disabled={
                     isGenerating ||
-                    !purpose.trim() ||
-                    !recipientContext.trim() ||
-                    !senderContext.trim()
+                    !purpose ||
+                    !recipientContext ||
+                    !senderContext
                   }
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-red-500 hover:from-purple-700 hover:to-red-600 text-white shadow-lg shadow-purple-600/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                  className="bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white shadow-lg shadow-sky-500/40 transform hover:scale-105 transition-all duration-300 rounded-full px-10 py-3 text-base font-semibold"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Generating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" /> Generate Cold Email
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate Cold Email
                     </>
                   )}
                 </Button>
@@ -311,25 +322,49 @@ export default function AiColdEmailGenerator() {
         <AnimatePresence mode="wait">
           {(generatedEmail || isGenerating) && (
             <motion.div
+              key="result-card"
               initial="hidden"
               animate="visible"
               exit="hidden"
               variants={cardInViewVariants}
             >
-              <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-red-500/10 text-white">
-                <CardHeader>
-                  <CardTitle className="text-red-400">
-                    Your Generated Cold Email
+              <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-indigo-500/10">
+                <CardHeader className="flex flex-row justify-between items-center">
+                  <CardTitle className="text-indigo-700">
+                    Your Generated Email
                   </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleCopyEmail}
+                      disabled={!generatedEmail || isGenerating}
+                      size="sm"
+                      variant="outline"
+                      className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full"
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Copy
+                    </Button>
+                    <Button
+                      onClick={handleDownloadEmail}
+                      disabled={!generatedEmail || isGenerating}
+                      size="sm"
+                      variant="outline"
+                      className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full"
+                    >
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {isGenerating ? (
-                    <div className="min-h-[200px] flex items-center justify-center text-slate-400">
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Drafting
-                      your email...
+                    <div className="min-h-[250px] flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-lg">
+                      <Loader2 className="h-8 w-8 animate-spin text-sky-500 mb-3" />
+                      <p className="font-semibold text-lg">
+                        Drafting your email...
+                      </p>
+                      <p>This should only take a moment.</p>
                     </div>
                   ) : (
-                    <div className="min-h-[200px] p-4 bg-[#141624] border border-[#363A4D] rounded-md text-white whitespace-pre-wrap break-words overflow-auto max-h-[600px]">
+                    <div className="min-h-[250px] p-4 bg-slate-50/70 border border-slate-200 rounded-lg max-h-[600px] overflow-y-auto">
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={generatedEmail || "empty"}
@@ -337,6 +372,7 @@ export default function AiColdEmailGenerator() {
                           animate="animate"
                           exit="exit"
                           variants={resultVariants}
+                          className="prose prose-sm lg:prose-base prose-slate max-w-none"
                         >
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {generatedEmail || ""}
@@ -345,32 +381,14 @@ export default function AiColdEmailGenerator() {
                       </AnimatePresence>
                     </div>
                   )}
-
-                  <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      onClick={handleCopyEmail}
-                      disabled={!generatedEmail || isGenerating}
-                      size="sm"
-                      className="bg-gradient-to-r from-purple-600 to-red-500 hover:from-purple-700 hover:to-red-600 text-white shadow-md transition-all duration-200 rounded-full px-4 py-2"
-                    >
-                      <Copy className="w-4 h-4 mr-1" /> Copy
-                    </Button>
-                    <Button
-                      onClick={handleDownloadEmail}
-                      disabled={!generatedEmail || isGenerating}
-                      size="sm"
-                      className="bg-gradient-to-r from-red-500 to-purple-600 text-black font-semibold hover:from-red-600 hover:to-purple-700 shadow-md transition-all duration-200 rounded-full px-4 py-2"
-                    >
-                      <Download className="w-4 h-4 mr-1" /> Download
-                    </Button>
-                  </div>
-                  <div className="mt-4 text-center">
+                  <div className="mt-6 text-center">
                     <Button
                       onClick={handleReset}
                       size="lg"
-                      className="bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white shadow-lg shadow-gray-500/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                      variant="ghost"
+                      className="text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-full px-8 py-3 font-semibold"
                     >
-                      <RefreshCw className="mr-2 h-4 w-4" /> Generate New Email
+                      <RefreshCw className="mr-2 h-4 w-4" /> Start Over
                     </Button>
                   </div>
                 </CardContent>
@@ -386,26 +404,28 @@ export default function AiColdEmailGenerator() {
           viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#FFD700]/10 text-white">
+          <Card className="bg-amber-50 border border-amber-200/80 rounded-xl shadow-lg shadow-amber-500/10">
             <CardContent className="p-6">
-              <h4 className="font-semibold text-[#FFD700] mb-3 text-lg">
+              <h4 className="font-semibold text-amber-700 mb-3 text-lg">
                 Tips for Effective Cold Emails
               </h4>
-              <ul className="text-slate-400 space-y-2 text-sm list-disc list-inside">
+              <ul className="text-amber-900/80 space-y-2 text-sm list-disc list-outside ml-4">
                 <li>
-                  Be highly specific about the recipient and your
-                  connection/reason for outreach.
+                  Be highly specific about why you're contacting *this* person.
                 </li>
                 <li>
-                  Clearly state your purpose and value proposition early in the
-                  email.
+                  Clearly state your value proposition in the first two
+                  sentences.
                 </li>
-                <li>Keep it concise; respect the recipient's time.</li>
-                <li>Include a clear, low-friction call to action.</li>
                 <li>
-                  Personalize the generated email with specific names and
-                  details before sending.
+                  Keep it concise to respect the recipient's time—under 150
+                  words is ideal.
                 </li>
+                <li>
+                  End with a clear, low-friction call to action (e.g., "Are you
+                  open to a 15-minute call next week?").
+                </li>
+                <li>Always personalize the generated email before sending!</li>
               </ul>
             </CardContent>
           </Card>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Code, Loader2, Copy, Download } from "lucide-react";
+import { Code, Loader2, Copy, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,10 +12,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import ToolLayout from "@/components/ToolLayout";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation } from "@tanstack/react-query";
+
+// Light Theme Palette Notes:
+// - Page Background: bg-slate-50
+// - Card Background: bg-white
+// - Text: text-slate-800 (Primary), text-slate-700 (Secondary)
+// - Borders: border-slate-200/300
+// - Code Area BG: bg-slate-50/70
+// - Accent Gradient: Blue-500 to Purple-500
 
 export default function CodeCommentingTool() {
   const [code, setCode] = useState("");
@@ -23,24 +30,28 @@ export default function CodeCommentingTool() {
   const [language, setLanguage] = useState("javascript");
   const { toast } = useToast();
 
+  // --- Core logic (API call, handlers) is unchanged ---
+  // NOTE: This uses a simulated API call. Replace with your actual API endpoint.
   const commentCodeMutation = useMutation({
     mutationFn: async (data: { code: string; language: string }) => {
+      // Replace this with your actual API call logic
       console.log("Simulating API call to comment code:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Example prompt for a real API
+      const prompt = `Add comprehensive comments to the following ${data.language} code. Explain complex parts, the purpose of functions, and the overall logic.\n\n\`\`\`${data.language}\n${data.code}\n\`\`\``;
       return {
-        commentedCode: `// This is a simulated comment for ${data.language}\n${data.code}\n// End of simulated comments`,
+        commentedCode: `// This is a simulated comment for ${data.language}\n${data.code}\n// The function above demonstrates a basic implementation.`,
       };
     },
     onSuccess: (data) => {
       setCommentedCode(data.commentedCode);
-      toast({ title: "Success!", description: "Code commented successfully." });
+      toast({ title: "Success!", description: "Code has been commented." });
     },
     onError: (error) => {
       console.error("Code commenting error:", error);
       toast({
-        title: "Failed to comment code",
-        description:
-          "There was an error processing your code. Please try again.",
+        title: "Error",
+        description: "Failed to comment code. Please try again.",
         variant: "destructive",
       });
     },
@@ -49,8 +60,8 @@ export default function CodeCommentingTool() {
   const handleCommentCode = () => {
     if (!code.trim()) {
       toast({
-        title: "No code to comment",
-        description: "Please enter some code first.",
+        title: "Empty Input",
+        description: "Please enter some code to comment.",
         variant: "destructive",
       });
       return;
@@ -59,6 +70,7 @@ export default function CodeCommentingTool() {
   };
 
   const handleCopy = async (text: string, type: string) => {
+    if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
       toast({ title: "Copied!", description: `${type} copied to clipboard.` });
@@ -71,14 +83,10 @@ export default function CodeCommentingTool() {
         document.execCommand("copy");
         toast({
           title: "Copied!",
-          description: `${type} copied to clipboard (fallback).`,
+          description: `${type} copied via fallback.`,
         });
       } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Unable to copy to clipboard.",
-          variant: "destructive",
-        });
+        toast({ title: "Copy failed", variant: "destructive" });
       } finally {
         document.body.removeChild(textarea);
       }
@@ -86,6 +94,7 @@ export default function CodeCommentingTool() {
   };
 
   const handleDownload = (text: string, filename: string) => {
+    if (!text) return;
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -97,7 +106,7 @@ export default function CodeCommentingTool() {
     URL.revokeObjectURL(url);
     toast({
       title: "Downloaded!",
-      description: "Code file downloaded successfully.",
+      description: "Code file saved successfully.",
     });
   };
 
@@ -105,30 +114,19 @@ export default function CodeCommentingTool() {
     { value: "javascript", label: "JavaScript" },
     { value: "python", label: "Python" },
     { value: "java", label: "Java" },
+    { value: "csharp", label: "C#" },
+    { value: "typescript", label: "TypeScript" },
     { value: "cpp", label: "C++" },
     { value: "c", label: "C" },
-    { value: "csharp", label: "C#" },
     { value: "php", label: "PHP" },
     { value: "ruby", label: "Ruby" },
     { value: "go", label: "Go" },
     { value: "rust", label: "Rust" },
-    { value: "typescript", label: "TypeScript" },
     { value: "html", label: "HTML" },
     { value: "css", label: "CSS" },
     { value: "sql", label: "SQL" },
   ];
 
-  // Framer Motion variants for section entrance
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  // Framer Motion variants for card entrance on scroll
   const cardInViewVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -138,228 +136,152 @@ export default function CodeCommentingTool() {
     },
   };
 
-  // Framer Motion variants for output text change
-  const outputCodeVariants = {
-    initial: { opacity: 0, y: 10 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3, ease: "easeOut" },
-    },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
-  };
-
   return (
     <ToolLayout
-      title="Code Commenting Tool"
-      description="Automatically add meaningful comments to your code"
-      icon={<Code className="text-white text-2xl" />}
-      // Consistent green/yellow gradient for tool icon background
-      iconBg="bg-gradient-to-br from-[#00A389] to-[#FFD700]"
-      // Overall background should match the header's dark theme
-      className="bg-[#1A1C2C] text-white"
+      title="AI Code Commenter"
+      description="Automatically add meaningful comments to your code for better readability and documentation."
+      icon={<Code className="text-white" />}
+      iconBg="bg-gradient-to-br from-blue-500 to-purple-500"
     >
-      <div className="space-y-6">
-        {/* Language Selection */}
+      <div className="space-y-8">
+        {/* Input & Action Section */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
+          initial="hidden"
+          animate="visible"
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#00A389]/10 text-white">
+          <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-blue-500/10">
             <CardHeader>
-              <CardTitle className="text-[#00A389]">
-                Language Selection
-              </CardTitle>
+              <CardTitle className="text-blue-600">Enter Your Code</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="w-full max-w-xs sm:max-w-sm">
-                <Label htmlFor="language" className="text-slate-400 mb-2 block">
+            <CardContent className="space-y-6">
+              <div className="w-full max-w-sm">
+                <Label
+                  htmlFor="language"
+                  className="font-medium text-slate-700"
+                >
                   Programming Language
                 </Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-[#141624] border border-[#363A4D] text-white focus:ring-[#00A389] focus:border-[#00A389] transition-all duration-200">
-                    <SelectValue placeholder="Select a language" />
+                <Select
+                  value={language}
+                  onValueChange={setLanguage}
+                  disabled={commentCodeMutation.isPending}
+                >
+                  <SelectTrigger id="language">
+                    <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A1C2C] text-white border-[#2d314d]">
+                  <SelectContent>
                     {languages.map((lang) => (
-                      <SelectItem
-                        key={lang.value}
-                        value={lang.value}
-                        className="hover:bg-[#202230] focus:bg-[#202230] text-white transition-colors duration-150"
-                      >
+                      <SelectItem key={lang.value} value={lang.value}>
                         {lang.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Your Code Input */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={cardInViewVariants}
-        >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#FFD700]/10 text-white">
-            <CardHeader>
-              <div className="flex justify-between items-center flex-wrap gap-2">
-                <CardTitle className="text-[#FFD700]">Your Code</CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleCopy(code, "Original code")}
-                    size="sm"
-                    className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:from-[#008C75] hover:to-[#E6C200] text-white shadow-md shadow-[#00A389]/30 transition-all duration-200 rounded-full px-4 py-2"
-                    disabled={!code}
-                  >
-                    <Copy className="w-4 h-4 mr-1" /> Copy
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      handleDownload(code, `original-code.${language}`)
-                    }
-                    size="sm"
-                    className="bg-gradient-to-r from-[#FFD700] to-[#00A389] text-black font-semibold hover:from-[#E6C200] hover:to-[#008C75] shadow-md shadow-[#FFD700]/30 transition-all duration-200 rounded-full px-4 py-2"
-                    disabled={!code}
-                  >
-                    <Download className="w-4 h-4 mr-1" /> Download
-                  </Button>
-                </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="code-input"
+                  className="font-medium text-slate-700"
+                >
+                  Code Snippet
+                </Label>
+                <Textarea
+                  id="code-input"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Paste your code here..."
+                  rows={12}
+                  className="w-full font-mono text-sm bg-slate-50/70 border-slate-200 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 rounded-lg"
+                />
               </div>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Paste your code here..."
-                rows={12}
-                className="w-full font-mono text-sm bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-[#00A389]/50 focus:border-[#00A389] rounded-lg transition-all"
-              />
-              <div className="mt-2 text-sm text-slate-400">
-                Lines: {code.split("\n").length} | Characters: {code.length}
+              <div className="text-center">
+                <Button
+                  onClick={handleCommentCode}
+                  disabled={commentCodeMutation.isPending || !code.trim()}
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg shadow-blue-500/40 transform hover:scale-105 transition-all duration-300 rounded-full px-10 py-3 text-base font-semibold"
+                >
+                  {commentCodeMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Adding
+                      Comments...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" /> Add Comments
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-
-        {/* Add Comments Button */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          <div className="text-center">
-            <Button
-              onClick={handleCommentCode}
-              disabled={commentCodeMutation.isPending || !code.trim()}
-              size="lg"
-              className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:from-[#008C75] hover:to-[#E6C200] text-white shadow-lg shadow-[#00A389]/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
-            >
-              {commentCodeMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding
-                  Comments...
-                </>
-              ) : (
-                <>
-                  <Code className="mr-2 h-4 w-4" /> Add Comments
-                </>
-              )}
-            </Button>
-          </div>
         </motion.div>
 
         {/* Commented Code Output */}
-        <AnimatePresence mode="wait">
-          {commentedCode && (
+        <AnimatePresence>
+          {(commentCodeMutation.isPending || commentedCode) && (
             <motion.div
+              variants={cardInViewVariants}
               initial="hidden"
               animate="visible"
               exit="hidden"
-              variants={cardInViewVariants}
             >
-              <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#AF00C3]/10 text-white">
-                <CardHeader>
-                  <div className="flex justify-between items-center flex-wrap gap-2">
-                    <CardTitle className="text-[#AF00C3]">
-                      Commented Code
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() =>
-                          handleCopy(commentedCode, "Commented code")
-                        }
-                        size="sm"
-                        className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:from-[#008C75] hover:to-[#E6C200] text-white shadow-md shadow-[#00A389]/30 transition-all duration-200 rounded-full px-4 py-2"
-                      >
-                        <Copy className="w-4 h-4 mr-1" /> Copy
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          handleDownload(
-                            commentedCode,
-                            `commented-code.${language}`
-                          )
-                        }
-                        size="sm"
-                        className="bg-gradient-to-r from-[#FFD700] to-[#00A389] text-black font-semibold hover:from-[#E6C200] hover:to-[#008C75] shadow-md shadow-[#FFD700]/30 transition-all duration-200 rounded-full px-4 py-2"
-                      >
-                        <Download className="w-4 h-4 mr-1" /> Download
-                      </Button>
-                    </div>
+              <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-purple-500/10">
+                <CardHeader className="flex flex-row justify-between items-center">
+                  <CardTitle className="text-purple-600">
+                    Commented Code
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        handleCopy(commentedCode, "Commented code")
+                      }
+                      disabled={!commentedCode}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full"
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Copy
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        handleDownload(
+                          commentedCode,
+                          `commented-code.${language}`
+                        )
+                      }
+                      disabled={!commentedCode}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full"
+                    >
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <AnimatePresence mode="wait">
+                  {commentCodeMutation.isPending ? (
+                    <div className="min-h-[250px] flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-lg">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
+                      <p className="font-semibold text-lg">
+                        Analyzing and commenting code...
+                      </p>
+                    </div>
+                  ) : (
                     <motion.div
-                      key={commentedCode}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      variants={outputCodeVariants}
-                      className="w-full min-h-32 p-4 bg-[#141624] border border-[#363A4D] rounded-lg font-mono text-sm text-slate-100 whitespace-pre-wrap overflow-auto max-h-96"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="p-4 bg-slate-50/70 border border-slate-200 rounded-lg font-mono text-sm text-slate-800 whitespace-pre-wrap max-h-[500px] overflow-y-auto"
                     >
                       {commentedCode}
                     </motion.div>
-                  </AnimatePresence>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* How it works: Instructions */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={cardInViewVariants}
-        >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#00A389]/10 text-white">
-            <CardContent className="p-6">
-              <h4 className="font-semibold text-[#00A389] mb-3 text-lg">
-                How it works:
-              </h4>
-              <ul className="text-slate-400 space-y-2 text-sm list-decimal list-inside">
-                <li>Select your programming language from the dropdown</li>
-                <li>Paste your code in the input area</li>
-                <li>Click "Add Comments" to generate meaningful comments</li>
-                <li>Review and copy/download the commented code</li>
-              </ul>
-              <p className="text-[#AF00C3] text-sm mt-4">
-                <strong>Note:</strong> Comments are generated using AI to
-                explain what your code does, making it more readable and
-                maintainable.
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </ToolLayout>
   );

@@ -21,7 +21,6 @@ import AiInterviewPracticeTool from "@/pages/tools/AiInterviewPracticeTool";
 import AiInterviewStudyGuide from "@/pages/tools/AiInterviewStudyGuide";
 import CharacterCounter from "@/pages/tools/CharacterCounter";
 import PlagiarismChecker from "@/pages/tools/PlagiarismChecker";
-import WatermarkRemover from "@/pages/tools/WatermarkRemover";
 import AiIdeaGenerator from "@/pages/tools/AiIdeaGenerator";
 import CoverLetterGenerator from "@/pages/tools/CoverLetterGenerator";
 import AiRecruiterMessageGenerator from "@/pages/tools/AiRecruiterMessageGenerator";
@@ -51,7 +50,6 @@ function Router() {
       <Route path="/interview-study-guide" component={AiInterviewStudyGuide} />
       <Route path="/character-counter" component={CharacterCounter} />
       <Route path="/plagiarism-checker" component={PlagiarismChecker} />
-      <Route path="/watermark-remover" component={WatermarkRemover} />
       <Route path="/ai-idea-generator" component={AiIdeaGenerator} />
       <Route path="/cover-letter-generator" component={CoverLetterGenerator} />
       <Route path="/ai-recruiter-message-generator" component={AiRecruiterMessageGenerator} />

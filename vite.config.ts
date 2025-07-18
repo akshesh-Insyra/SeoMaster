@@ -23,8 +23,10 @@ export default defineConfig({
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
+  // Your frontend source is correctly set to 'client'
   root: path.resolve(import.meta.dirname, "client"),
   build: {
+    // Your frontend build output is correctly set to 'dist/public'
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },

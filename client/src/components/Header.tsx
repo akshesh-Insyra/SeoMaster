@@ -35,48 +35,48 @@ export default function Header() {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 bg-transparent backdrop-blur-md border-b border-[#2d314d] shadow-[0_0_30px_#00FFD1]/20"
+      // Keep the light, subtle background from the 'Dia' theme
+      className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm"
       initial="hidden"
       animate="visible"
       variants={headerVariants}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* Logo - Colorful and Unique */}
           <Link
             href="/"
             className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
           >
             <Sparkles
               size={30}
-              // Icon color and shadow changed to green accent
-              className="text-[#00A389] animate-pulse-slow drop-shadow-[0_0_8px_#00A389]"
+              // Vibrant blue-purple icon with a subtle glow, animated
+              className="text-indigo-500 animate-pulse-slow drop-shadow-[0_0_8px_rgba(99,102,241,0.6)]"
             />
             <h1 className="text-3xl font-extrabold">
               <span
-                // Text gradient updated to green/yellow, static (removed animate-gradient-move)
-                className="bg-clip-text text-transparent bg-gradient-to-r from-[#00A389] to-[#FFD700]"
+                // Dynamic gradient text: from vibrant blue to electric purple
+                className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
               >
                 INSYRA
               </span>
             </h1>
-            {/* Adjusted text color for "Tools" */}
-            <span className="text-xs text-slate-400 ml-1 mt-1">Tools</span>
+            <span className="text-xs text-gray-500 ml-1 mt-1">Tools</span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav - Colorful with Attractive Hovers */}
           <nav className="hidden md:flex space-x-6">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-300
+                className={`relative px-4 py-2 text-md font-bold rounded-md transition-all duration-300 group
                   ${
                     location === item.href
-                      ? // Active link: green text, border, and shadow (Crickworks accent)
-                        "text-[#00A389] border-b-2 border-[#00A389] shadow-[0_0_8px_#00A389]/40"
-                      : // Inactive link: softer grey, hover to purple with subtle shadow (Crickworks accent)
-                        "text-slate-300 hover:text-[#AF00C3] hover:shadow-[0_0_10px_#AF00C3]/40"
+                      ? // Active link: bright green text, subtle underline, subtle glow
+                        "text-emerald-600 after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-emerald-500 after:transition-all after:duration-300 after:-translate-x-1/2 after:w-full shadow-emerald-200/50"
+                      : // Inactive link: dark gray, hover to a warm yellow/orange with an underline animation
+                        "text-gray-700 hover:text-amber-500 after:absolute after:bottom-0 after:left-1/2 after:w-0 group-hover:after:w-full after:h-[2px] after:bg-amber-400 after:transition-all after:duration-300 after:-translate-x-1/2"
                   }`}
               >
                 {item.label}
@@ -84,25 +84,24 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Colorful and Animated */}
           <div className="md:hidden">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              // Mobile menu icon: softer grey, hover to green (Crickworks accent)
-              className="text-slate-300 hover:text-[#00A389] transition-transform duration-300 hover:scale-110"
+              className="text-blue-500 hover:text-purple-600 transition-transform duration-300 hover:scale-110"
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Light background, colorful items with hovers */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              className="md:hidden border-t border-[#363A4D] my-2 overflow-hidden bg-[#1A1C2C] backdrop:blur-sm rounded-lg shadow-lg"
+              className="md:hidden border-t border-gray-100 my-2 overflow-hidden bg-white rounded-xl shadow-md"
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -113,13 +112,13 @@ export default function Header() {
                   <motion.div key={item.href} variants={menuItemVariants}>
                     <Link
                       href={item.href}
-                      className={`block px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
+                      className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
                         ${
                           location === item.href
-                            ? // Active mobile link: background matching cards, green text
-                              "bg-[#202230] text-[#00A389] shadow-md"
-                            : // Inactive mobile link: softer grey, hover bg slightly lighter
-                              "text-slate-300 hover:text-[#AF00C3] hover:bg-[#141624]"
+                            ? // Active mobile link: subtle light green background, bright green text
+                              "bg-emerald-50 text-emerald-700 shadow-sm"
+                            : // Inactive mobile link: dark text, hover bg light orange, hover text vibrant orange
+                              "text-gray-700 hover:text-orange-600 hover:bg-orange-50"
                         }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -127,17 +126,13 @@ export default function Header() {
                     </Link>
                   </motion.div>
                 ))}
-                {/* Mobile action buttons (optional, moved from desktop nav for mobile view) */}
-                <div className="pt-4 flex flex-col space-y-2">
-                  
-                </div>
               </nav>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Animations (kept for consistency with the component's original features) */}
+      {/* Animations (re-added for desired effects) */}
       <style jsx>{`
         @keyframes pulse-slow {
           0%,
@@ -152,6 +147,11 @@ export default function Header() {
         }
         .animate-pulse-slow {
           animation: pulse-slow 4s infinite ease-in-out;
+        }
+
+        /* Custom underline animation for desktop nav */
+        .group:hover .after\\:w-full {
+          width: 100%;
         }
       `}</style>
     </motion.header>

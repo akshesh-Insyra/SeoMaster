@@ -1,11 +1,9 @@
 import { Link } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-// HeroMockup import removed as it's not part of this specific hero redesign scope
-// import HeroMockup from "@/components/HeroMockup";
+import Header from "@/components/Header"; // Assuming you have this component
+import Footer from "@/components/Footer"; // Assuming you have this component
 
 import {
   Sparkles,
@@ -13,636 +11,490 @@ import {
   Code,
   Image as ImageIcon,
   Layers,
-  UploadCloud,
-  PlayCircle,
-  DownloadCloud,
+  ChevronDown,
   Quote,
-  ChevronLeft,
-  ChevronRight,
-  UserRound,
-  Wallet,
-  CalendarDays,
-  LineChart,
+  Star,
+  Send,
 } from "lucide-react";
 
-// Reusing ToolCard and FeatureCard (no changes needed for this request)
-const ToolCard = ({ icon: Icon, title, description, href }) => (
+//==================================================================
+// NEW: Redesigned Masonry Grid Testimonials Section
+//==================================================================
+
+const testimonials = [
+  {
+    name: "David Lee",
+    stars: 4,
+    quote:
+      "From generating quick ad copy to converting reports, Insyra is my go-to toolkit. Saves me from ad-filled websites.",
+    theme: {
+      // From white to a vibrant blue gradient
+      bg: "bg-gradient-to-br from-sky-500 to-indigo-600",
+      text: "text-white",
+    },
+  },
+  {
+    name: "Maria Garcia",
+    stars: 5,
+    quote:
+      "The Unit Converter and Text Generator are lifesavers for my assignments. Everything is in one place and super fast.",
+    theme: {
+      // From lime to a warm orange gradient
+      bg: "bg-gradient-to-br from-amber-400 to-orange-500",
+      text: "text-white",
+    },
+  },
+  {
+    name: "Alex Rivera", // Changed name for variety
+    stars: 4,
+    quote:
+      "I rely on these tools daily. The efficiency and clean interface are top-notch. A must-have for any professional.", // Slightly different quote for variety
+    theme: {
+      // Kept the purple but made it a gradient
+      bg: "bg-gradient-to-br from-fuchsia-500 to-purple-600",
+      text: "text-white",
+    },
+  },
+  {
+    name: "Kenji Tanaka",
+    stars: 5,
+    quote:
+      "The suite of formatters is indispensable. Clean, fast, and no nonsense. A beautifully designed set of tools.",
+    theme: {
+      // From white to a sleek dark gradient
+      bg: "bg-gradient-to-br from-slate-700 to-gray-900",
+      text: "text-white",
+    },
+  },
+  {
+    name: "Emily White",
+    stars: 5,
+    quote:
+      "As a writer, the Text Generator is a fantastic source of inspiration. The tools are simple, elegant, and just work.",
+    theme: {
+      // Kept the rose but made it a gradient
+      bg: "bg-gradient-to-br from-pink-500 to-rose-500",
+      text: "text-white",
+    },
+  },
+  {
+    name: "Chris Peters",
+    stars: 5,
+    quote:
+      "As a writer, the Text Generator is a fantastic source of inspiration. The tools are simple, elegant, and just work.",
+    theme: {
+      // Added a new green gradient
+      bg: "bg-gradient-to-br from-green-400 to-teal-500",
+      text: "text-white",
+    },
+  },
+];
+
+const StarRating = ({ count, color }) => (
+  <div className="flex gap-1 mb-2">
+    {[...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        size={20}
+        className={i < count ? color : "text-gray-300"}
+        fill={i < count ? "currentColor" : "none"}
+      />
+    ))}
+  </div>
+);
+
+const TestimonialCard = ({ testimonial, variants }) => {
+  const { quote, name, stars, theme } = testimonial;
+  const starColor =
+    theme.bg === "bg-white" || theme.bg === "bg-lime-300"
+      ? "text-yellow-400"
+      : "text-yellow-300";
+
+  return (
+    <motion.div
+      variants={variants}
+      className={`p-6 rounded-2xl shadow-lg cursor-pointer break-inside-avoid mb-8 ${theme.bg} ${theme.text}`}
+    >
+      <StarRating count={stars} color={starColor} />
+      <p className="text-base md:text-lg mb-4">"{quote}"</p>
+      <p className="font-bold text-sm md:text-base">- {name}</p>
+    </motion.div>
+  );
+};
+
+const ToolTestimonials = () => {
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
+
+  return (
+    <section className="py-24 md:py-32 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={itemVariants}
+        >
+          <p className="text-indigo-600 font-semibold mb-2">Rating & Reviews</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+            Trusted by People
+          </h2>
+        </motion.div>
+
+        <motion.div
+          className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={containerVariants}
+        >
+          {testimonials.map((testimonial, i) => (
+            <TestimonialCard
+              key={i}
+              testimonial={testimonial}
+              variants={itemVariants}
+            />
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+const ToolCard = ({ icon: Icon, title, description, href, theme }) => (
   <motion.div
-    className="bg-[#202230] rounded-2xl border border-[#363A4D] shadow-lg p-6 flex flex-col items-center text-center hover:shadow-[0_0_24px_#00A389]/30 hover:-translate-y-2 transition-all duration-300"
-    initial={{ opacity: 0, y: 50 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.2 }}
-    transition={{ duration: 0.7, ease: "easeOut" }}
+    whileHover={{ y: -8, scale: 1.03 }}
+    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+    className="h-full"
   >
-    <div className="p-4 rounded-full bg-gradient-to-br from-[#00A389] to-[#FFD700] mb-4 shadow-lg">
-      <Icon size={32} className="text-white" />
-    </div>
-    <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-    <p className="text-slate-400 text-sm mb-4">{description}</p>
-    <Link href={href}>
-      <button className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:brightness-110 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-xl">
-        Use Tool
-      </button>
+    <Link href={href} className="h-full block">
+      <div
+        className={`relative w-full h-full rounded-3xl p-8 flex flex-col items-center text-center overflow-hidden transition-shadow duration-300 ${theme.gradient} ${theme.shadow}`}
+      >
+        <div
+          className="absolute -inset-2 bg-no-repeat bg-center opacity-5"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+        <div
+          className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${theme.iconBg}`}
+        >
+          <Icon size={40} className="text-white" />
+        </div>
+        <h3 className="text-2xl font-bold text-white mb-3 z-10">{title}</h3>
+        <p className="text-white/80 text-base mb-8 flex-grow z-10">
+          {description}
+        </p>
+        <div
+          className={`w-full py-3 px-5 rounded-xl font-semibold text-lg text-white shadow-md z-10 ${theme.gradient}`}
+        >
+          Use Tool
+        </div>
+      </div>
     </Link>
   </motion.div>
 );
 
-const FeatureCard = ({ icon: Icon, title, description, iconBgClass }) => (
-  <motion.div
-    className="bg-[#202230] rounded-2xl border border-[#363A4D] shadow-lg p-6 flex flex-col items-center text-center"
-    initial={{ opacity: 0, y: 50 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.3 }}
-    transition={{ duration: 0.6, ease: "easeOut" }}
-  >
-    <div className={`p-4 rounded-full mb-4 shadow-lg ${iconBgClass}`}>
-      <Icon size={32} className="text-white" />
-    </div>
-    <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-    <p className="text-slate-400 text-sm">{description}</p>
-  </motion.div>
-);
-
 export default function HomePage() {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [direction, setDirection] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [openIndex, setOpenIndex] = useState(null);
 
-  // State for hero section cursor flare
-  const [heroMousePosition, setHeroMousePosition] = useState({ x: 0, y: 0 });
-  const [isHeroHovering, setIsHeroHovering] = useState(false);
-
-  // Effect to handle mouse movement for hero flare
   useEffect(() => {
-    const heroSection = document.getElementById("hero-section"); // Get the hero section element
-    const handleMouseMove = (event) => {
+    const heroSection = document.getElementById("hero-section");
+    const handleMouseMove = (e) => {
       if (heroSection) {
         const rect = heroSection.getBoundingClientRect();
-        setHeroMousePosition({
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        });
+        setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
       }
     };
-
-    const handleMouseEnter = () => setIsHeroHovering(true);
-    const handleMouseLeave = () => setIsHeroHovering(false);
-
-    if (heroSection) {
-      heroSection.addEventListener("mousemove", handleMouseMove);
-      heroSection.addEventListener("mouseenter", handleMouseEnter);
-      heroSection.addEventListener("mouseleave", handleMouseLeave);
-    }
-
+    heroSection?.addEventListener("mousemove", handleMouseMove);
     return () => {
-      if (heroSection) {
-        heroSection.removeEventListener("mousemove", handleMouseMove);
-        heroSection.removeEventListener("mouseenter", handleMouseEnter);
-        heroSection.removeEventListener("mouseleave", handleMouseLeave);
-      }
+      heroSection?.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []); // Run once on mount
+  }, []);
 
   const featuredTools = [
     {
       icon: FileText,
       title: "PDF Converter",
       description: "Convert PDFs to various formats and vice versa with ease.",
-      href: "/tools/pdf-converter",
+      href: "/pdf-converter",
+      theme: {
+        gradient: "bg-gradient-to-br from-blue-500 to-purple-600",
+        iconBg: "bg-blue-600",
+        shadow: "hover:shadow-2xl hover:shadow-purple-500/30",
+      },
     },
     {
       icon: Code,
       title: "Code Formatter",
       description: "Beautify and optimize your code for better readability.",
-      href: "/tools/code-formatter",
+      href: "/code-formatter",
+      theme: {
+        gradient: "bg-gradient-to-br from-emerald-500 to-teal-600",
+        iconBg: "bg-emerald-600",
+        shadow: "hover:shadow-2xl hover:shadow-teal-500/30",
+      },
     },
     {
       icon: ImageIcon,
       title: "Image Resizer",
       description: "Quickly resize and compress images without losing quality.",
-      href: "/tools/image-resizer",
+      href: "/image-resizer",
+      theme: {
+        gradient: "bg-gradient-to-br from-rose-500 to-pink-600",
+        iconBg: "bg-rose-600",
+        shadow: "hover:shadow-2xl hover:shadow-pink-500/30",
+      },
     },
     {
       icon: Layers,
       title: "Unit Converter",
       description: "Convert between different units of measurement instantly.",
-      href: "/tools/unit-converter",
+      href: "/unit-converter",
+      theme: {
+        gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
+        iconBg: "bg-amber-600",
+        shadow: "hover:shadow-2xl hover:shadow-orange-500/30",
+      },
     },
     {
       icon: Sparkles,
       title: "Text Generator",
       description: "Generate creative text using AI for various purposes.",
-      href: "/tools/text-generator",
+      href: "/text-generator",
+      theme: {
+        gradient: "bg-gradient-to-br from-indigo-500 to-cyan-500",
+        iconBg: "bg-indigo-600",
+        shadow: "hover:shadow-2xl hover:shadow-cyan-500/30",
+      },
     },
     {
-      icon: FileText,
-      title: "JSON Formatter",
-      description: "Format and validate JSON data for easy debugging.",
-      href: "/tools/json-formatter",
+      icon: Send,
+      title: "AI Cold Email Generator",
+      description: "Create personalized cold emails for sales and outreach.",
+      href: "/ai-cold-email-generator",
+      theme: {
+        gradient: "bg-gradient-to-br from-slate-600 to-gray-800",
+        iconBg: "bg-slate-700",
+        shadow: "hover:shadow-2xl hover:shadow-gray-500/30",
+      },
     },
   ];
 
-  const testimonials = [
+  const faqs = [
     {
-      quote:
-        "INSYRA Tools has revolutionized my workflow! The PDF merger is incredibly fast and reliable. A must-have for anyone dealing with documents daily.",
-      author: "Jane Doe",
-      title: "Marketing Manager",
-      avatar: "https://placehold.co/100x100/6f00ff/ffffff?text=JD",
+      q: "What tools do you offer?",
+      a: "We offer a comprehensive suite of free online utilities including PDF converters, code formatters, image resizers, unit converters, and more!",
     },
     {
-      quote:
-        "As a developer, the Code Commenting Tool saves me hours. It's accurate, intelligent, and integrates seamlessly into my routine. Highly recommended!",
-      author: "John Smith",
-      title: "Software Engineer",
-      avatar: "https://placehold.co/100x100/ff00c3/ffffff?text=JS",
+      q: "Are the tools client-side and secure?",
+      a: "Yes, all our tools run client-side in your browser, ensuring your data is processed locally and securely.",
     },
     {
-      quote:
-        "I frequently need to resize images for our website, and INSYRA's Image Resizer is a lifesaver. Simple, efficient, and maintains quality.",
-      author: "Emily White",
-      title: "Web Designer",
-      avatar: "https://placehold.co/100x100/00FFD1/ffffff?text=EW",
+      q: "Is registration required?",
+      a: "No, absolutely not! All tools are 100% free to use with no registration required.",
+    },
+    {
+      q: "How can I suggest a new tool?",
+      a: "We'd love to hear your ideas! Please use the 'Contact Us' link in the footer to send us your suggestions.",
     },
   ];
 
-  const paginate = (newDirection) => {
-    setDirection(newDirection);
-    setCurrentTestimonial(
-      (prev) =>
-        (prev + newDirection + testimonials.length) % testimonials.length
-    );
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      paginate(1);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [currentTestimonial]);
-
-  const heroVariants = {
-    hidden: { opacity: 0, y: 40 },
+  const containerVariants = {
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
       y: 0,
-      transition: { duration: 0.9, ease: "easeOut" },
-    },
-  };
-
-  const buttonVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
       opacity: 1,
-      scale: 1,
-      transition: { duration: 0.7, ease: "easeOut", delay: 0.7 },
+      transition: { type: "spring", stiffness: 100 },
     },
-  };
-
-  const sectionHeaderVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.7, ease: "easeOut" },
-    },
-  };
-
-  const processStepVariants = {
-    hidden: { opacity: 0, scale: 0.7, y: 50 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  const testimonialVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? 1500 : -1500,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 1, ease: "easeOut" },
-    },
-    exit: (direction) => ({
-      x: direction < 0 ? 1500 : -1500,
-      opacity: 0,
-      transition: { duration: 1, ease: "easeOut" },
-    }),
   };
 
   return (
-    <div className="min-h-screen text-white relative overflow-hidden flex flex-col mt-[-50vh] pt-[50vh]">
-      {/* Absolute positioned background layer for the base color */}
-      <div className="absolute inset-0 bg-[#0E101A] z-0"></div>
+    <div className="min-h-screen relative overflow-x-hidden flex flex-col bg-slate-50 text-gray-800">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-blue-300/50 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
+        <div className="absolute top-0 -right-1/4 w-96 h-96 bg-purple-300/50 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-pink-300/50 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
+      </div>
 
-      {/* Background glowing blobs */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-[#00A389] rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob z-0"></div>
-      <div className="absolute top-10 right-0 w-72 h-72 bg-[#AF00C3] rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob animation-delay-2000 z-0"></div>
-
-      {/* Main content wrapper, now with the backdrop-blur effect */}
-      <div className="relative z-10 flex flex-col flex-1 bg-[#0E101A]/80 backdrop-blur-sm">
-        {/* Hero Section - With only flare cursor */}
+      <main className="flex-1">
         <section
-          id="hero-section" // Add ID for mouse tracking
-          className="py-20 md:py-32 relative overflow-hidden flex items-center justify-center min-h-[80vh] text-center"
+          id="hero-section"
+          className="relative py-28 md:py-40 flex items-center justify-center text-center overflow-hidden"
           style={{
-            "--mouse-x": `${heroMousePosition.x}px`,
-            "--mouse-y": `${heroMousePosition.y}px`,
+            "--mouse-x": `${mousePosition.x}px`,
+            "--mouse-y": `${mousePosition.y}px`,
           }}
         >
-          {/* Hero Section Flare Cursor */}
-          {isHeroHovering && <div className="hero-flare-cursor"></div>}
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            {" "}
-            {/* Content wrapper */}
-            <div className="text-center">
-              <motion.h1
-                className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 leading-tight"
-                variants={heroVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00A389] to-[#FFD700]">
-                  INSYRA
-                </span>{" "}
+          <div className="hero-flare" />
+          <div className="relative z-10 max-w-4xl mx-auto px-4">
+            <motion.h1
+              className="text-5xl md:text-7xl font-extrabold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            >
+              <span className="text-gray-900">INSYRA</span>{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
                 Tools
-              </motion.h1>
-              <motion.p
-                className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-4xl mx-auto"
-                variants={heroVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ ...heroVariants.visible.transition, delay: 0.2 }}
-              >
-                Free Online Utilities for a Smarter Workflow.
-              </motion.p>
-              <motion.p
-                className="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10"
-                variants={heroVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ ...heroVariants.visible.transition, delay: 0.4 }}
-              >
-                Unlock peak productivity with our comprehensive suite of
-                powerful, free online tools. From seamless PDF management to
-                intelligent code optimization and creative text generation, we
-                provide everything you need to streamline your digital tasks.
-              </motion.p>
-              <motion.div
-                className="flex flex-col sm:flex-row gap-4 justify-center"
-                variants={buttonVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <Link href="/services">
-                  <button className="bg-[#00A389] hover:bg-[#008F79] text-white font-semibold px-10 py-4 rounded-full transition-all duration-300 shadow-md hover:shadow-xl">
-                    Get Started
-                  </button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="border-2 border-[#AF00C3] text-[#AF00C3] hover:bg-[#AF00C3]/20 hover:text-white rounded-full px-10 py-6  text-lg transition-all duration-300"
-                >
-                  Learn More
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <motion.h2
-                className="text-3xl sm:text-4xl font-bold text-white mb-4"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-              >
-                Featured Tools
-              </motion.h2>
-              <motion.p
-                className="text-slate-400 max-w-2xl mx-auto text-lg"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-                transition={{
-                  ...sectionHeaderVariants.visible.transition,
-                  delay: 0.2,
-                }}
-              >
-                Discover our most popular and essential productivity tools,
-                meticulously crafted to save you time and maximize your
-                efficiency.
-              </motion.p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {featuredTools.map((tool) => (
-                <ToolCard key={tool.title} {...tool} />
-              ))}
-            </div>
-
-            <div className="text-center mt-12 md:mt-16">
-              <Link href="/services">
-                <button className="bg-gradient-to-r from-[#00A389] to-[#FFD700] hover:brightness-110 text-black font-semibold px-8 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-xl">
-                  View All Tools
-                </button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 md:py-24 bg-[#1a1c2c]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <motion.h2
-                className="text-3xl sm:text-4xl font-bold text-white mb-4"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-              >
-                How It Works
-              </motion.h2>
-              <motion.p
-                className="text-slate-400 max-w-2xl mx-auto text-lg"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-                transition={{
-                  ...sectionHeaderVariants.visible.transition,
-                  delay: 0.2,
-                }}
-              >
-                Experience seamless productivity in just a few simple steps.
-              </motion.p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <motion.div
-                className="flex flex-col items-center p-6 bg-[#202230] rounded-2xl border border-[#363A4D] shadow-xl"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4 }}
-                variants={processStepVariants}
-              >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#00A389] to-[#FFD700] flex items-center justify-center mb-4 shadow-lg">
-                  <UploadCloud size={40} className="text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  1. Upload Your File
-                </h3>
-                <p className="text-slate-400">
-                  Drag and drop or select files from your device.
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="flex flex-col items-center p-6 bg-[#202230] rounded-2xl border border-[#363A4D] shadow-xl"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4 }}
-                variants={processStepVariants}
-                transition={{
-                  ...processStepVariants.visible.transition,
-                  delay: 0.2,
-                }}
-              >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFD700] to-[#AF00C3] flex items-center justify-center mb-4 shadow-lg">
-                  <PlayCircle size={40} className="text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  2. Process Instantly
-                </h3>
-                <p className="text-slate-400">
-                  Our tools process your data securely in seconds.
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="flex flex-col items-center p-6 bg-[#202230] rounded-2xl border border-[#363A4D] shadow-xl"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4 }}
-                variants={processStepVariants}
-                transition={{
-                  ...processStepVariants.visible.transition,
-                  delay: 0.4,
-                }}
-              >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#AF00C3] to-[#00A389] flex items-center justify-center mb-4 shadow-lg">
-                  <DownloadCloud size={40} className="text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  3. Download Your Result
-                </h3>
-                <p className="text-slate-400">
-                  Get your processed file or text instantly.
-                </p>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 md:py-24">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <motion.h2
-                className="text-3xl sm:text-4xl font-bold text-white mb-4"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-              >
-                What Our Users Say
-              </motion.h2>
-              <motion.p
-                className="text-slate-400 max-w-2xl mx-auto text-lg"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionHeaderVariants}
-                transition={{
-                  ...sectionHeaderVariants.visible.transition,
-                  delay: 0.2,
-                }}
-              >
-                Hear from satisfied users who boost their productivity with
-                INSYRA Tools.
-              </motion.p>
-            </div>
-
-            <div className="relative w-full h-[300px] sm:h-[350px] md:h-[400px] overflow-hidden rounded-2xl bg-[#202230] border border-[#363A4D] shadow-xl p-8 flex items-center justify-center">
-              <AnimatePresence initial={false} custom={direction}>
-                <motion.div
-                  key={currentTestimonial}
-                  custom={direction}
-                  variants={testimonialVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center"
-                >
-                  <Quote size={48} className="text-[#00A389] mb-6 opacity-70" />
-                  <p className="text-xl sm:text-2xl italic text-slate-300 mb-6 leading-relaxed max-w-2xl">
-                    "{testimonials[currentTestimonial].quote}"
-                  </p>
-                  <img
-                    src={testimonials[currentTestimonial].avatar}
-                    alt={testimonials[currentTestimonial].author}
-                    className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-[#FFD700]"
-                  />
-                  <p className="font-semibold text-white text-lg">
-                    {testimonials[currentTestimonial].author}
-                  </p>
-                  <p className="text-slate-400 text-sm">
-                    {testimonials[currentTestimonial].title}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-
-              <button
-                onClick={() => paginate(-1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 z-20 focus:outline-none focus:ring-2 focus:ring-[#00A389]"
-                aria-label="Previous testimonial"
-              >
-                <ChevronLeft size={24} className="text-white" />
-              </button>
-              <button
-                onClick={() => paginate(1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 z-20 focus:outline-none focus:ring-2 focus:ring-[#00A389]"
-                aria-label="Next testimonial"
-              >
-                <ChevronRight size={24} className="text-white" />
-              </button>
-
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-20">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setDirection(index > currentTestimonial ? 1 : -1);
-                      setCurrentTestimonial(index);
-                    }}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentTestimonial
-                        ? "bg-[#00A389] w-6"
-                        : "bg-slate-600"
-                    }`}
-                    aria-label={`Go to testimonial ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 md:py-32 bg-gradient-to-r from-[#00A389] to-[#FFD700] text-center">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.h2
-              className="text-4xl sm:text-5xl font-bold text-black mb-6 leading-tight"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.5 }}
-              variants={sectionHeaderVariants}
-            >
-              Ready to Boost Your Productivity?
-            </motion.h2>
+              </span>
+            </motion.h1>
             <motion.p
-              className="text-xl text-black opacity-90 mb-8 max-w-3xl mx-auto"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.5 }}
-              variants={sectionHeaderVariants}
-              transition={{
-                ...sectionHeaderVariants.visible.transition,
-                delay: 0.2,
-              }}
+              className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto mb-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
             >
-              Explore our full suite of free online tools designed to make your
-              daily tasks easier and faster. Join thousands of satisfied users
-              today!
+              Free, Fast, & Secure Online Utilities for a Smarter Workflow.
             </motion.p>
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.5 }}
-              variants={buttonVariants}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 120,
+                damping: 12,
+                delay: 0.4,
+              }}
             >
               <Link href="/services">
-                <Button className="bg-[#202230] text-[#00A389] hover:bg-[#363A4D] rounded-full px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
-                  Get Started Now
+                <Button
+                  size="lg"
+                  className="bg-indigo-600 text-white rounded-full px-10 py-6 text-lg font-semibold shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all"
+                >
+                  Explore All Tools
                 </Button>
               </Link>
             </motion.div>
           </div>
         </section>
-      </div>
 
-      <style jsx>{`
-        /* Global Blob Animation (used in main container) */
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite cubic-bezier(0.6, 0.01, 0.4, 1);
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
+        <section className="py-24 md:py-32 bg-white/50 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="text-center mb-16"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              variants={itemVariants}
+            >
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+                Featured Tools
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Our most popular tools, meticulously crafted to boost your
+                productivity.
+              </p>
+            </motion.div>
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              variants={containerVariants}
+            >
+              {featuredTools.map((tool, i) => (
+                <motion.div key={i} variants={itemVariants} className="h-full">
+                  <ToolCard {...tool} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
 
-        /* Hero Section Flare Cursor */
-        .hero-flare-cursor {
-          --size: 500px; /* Larger flare for hero */
-          --gradient-color-1: rgba(0, 163, 137, 0.2); /* Green accent */
-          --gradient-color-2: rgba(255, 215, 0, 0.2); /* Yellow accent */
-          --gradient-color-3: transparent;
+        <ToolTestimonials />
 
-          position: absolute;
-          left: var(--mouse-x);
-          top: var(--mouse-y);
-          width: var(--size);
-          height: var(--size);
-          transform: translate(-50%, -50%);
-          background: radial-gradient(
-            circle at center,
-            var(--gradient-color-1) 0%,
-            var(--gradient-color-2) 30%,
-            var(--gradient-color-3) 70%
-          );
-          opacity: 0; /* Initially hidden */
-          transition: opacity 0.3s ease; /* Smooth fade in/out */
-          mix-blend-mode: screen;
-          filter: blur(100px); /* Soft blur */
-          border-radius: 50%;
-          pointer-events: none; /* Allows clicks to pass through */
-          z-index: 0; /* Behind main content, above background layers */
-        }
-        /* Show flare only when hovering hero section */
-        #hero-section:hover > .hero-flare-cursor {
-          opacity: 0.3; /* Increased opacity when hovered */
-        }
-      `}</style>
+        <section className="py-24 md:py-32">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="text-center mb-16"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              variants={itemVariants}
+            >
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+                FAQs
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Quick answers to common questions.
+              </p>
+            </motion.div>
+            <motion.div
+              className="space-y-4"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              variants={containerVariants}
+            >
+              {faqs.map((faq, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white/60 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden"
+                  variants={itemVariants}
+                >
+                  <button
+                    className="w-full flex justify-between items-center text-left p-6 text-lg font-medium text-gray-800"
+                    onClick={() =>
+                      setOpenIndex(openIndex === index ? null : index)
+                    }
+                  >
+                    <span>{faq.q}</span>
+                    <motion.div
+                      animate={{ rotate: openIndex === index ? 180 : 0 }}
+                    >
+                      <ChevronDown size={24} />
+                    </motion.div>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openIndex === index && (
+                      <motion.div
+                        initial="collapsed"
+                        animate="open"
+                        exit="collapsed"
+                        variants={{
+                          open: { opacity: 1, height: "auto" },
+                          collapsed: { opacity: 0, height: 0 },
+                        }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="px-6 pb-6 text-gray-600"
+                      >
+                        {faq.a}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

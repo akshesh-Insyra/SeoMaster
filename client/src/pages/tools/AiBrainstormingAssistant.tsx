@@ -7,10 +7,9 @@ import {
   Copy,
   Download,
   Brain,
-} from "lucide-react"; // Added Brain icon
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,15 +27,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+
 export default function AiBrainstormingAssistant() {
   const [topic, setTopic] = useState("");
-  const [ideaType, setIdeaType] = useState("General Ideas"); // Default idea type
-  const [numIdeas, setNumIdeas] = useState("5"); // Default number of ideas
-  const [generatedIdeas, setGeneratedIdeas] = useState<string | null>(null); // Raw markdown from AI
+  const [ideaType, setIdeaType] = useState("General Ideas");
+  const [numIdeas, setNumIdeas] = useState("5");
+  const [generatedIdeas, setGeneratedIdeas] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Framer Motion variants
+  // Framer Motion variants (remain the same, they are independent of theme)
   const cardInViewVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -47,13 +47,14 @@ export default function AiBrainstormingAssistant() {
   };
 
   const resultVariants = {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, scale: 0.95, y: 10 },
     animate: {
       opacity: 1,
+      scale: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
+    exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
   };
 
   const handleGenerateIdeas = async () => {
@@ -67,10 +68,11 @@ export default function AiBrainstormingAssistant() {
     }
 
     setIsGenerating(true);
-    setGeneratedIdeas(null); // Clear previous result
+    setGeneratedIdeas(null);
 
     try {
-      let prompt = `Generate ${numIdeas} unique and creative ${ideaType.toLowerCase()} based on the following topic/keywords: "${topic}".
+        // --- PROMPT AND API CALL LOGIC (UNCHANGED) ---
+        let prompt = `Generate ${numIdeas} unique and creative ${ideaType.toLowerCase()} based on the following topic/keywords: "${topic}".
       
       Present each idea as a clear, concise bullet point.
       ${
@@ -89,12 +91,12 @@ export default function AiBrainstormingAssistant() {
           : ""
       }
       
-      Ensure the ideas are diverse, actionable, and inspiring.`;
+      Ensure the ideas are diverse, actionable, and inspiring. Format the output nicely using Markdown.`;
 
       const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       };
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // Ensure this is set up
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
@@ -117,7 +119,7 @@ export default function AiBrainstormingAssistant() {
         setGeneratedIdeas(ideasText);
         toast({
           title: "Ideas Generated!",
-          description: "Check out your new ideas below.",
+          description: "Your new ideas are ready below.",
         });
       } else {
         console.error("Unexpected API response structure:", geminiResult);
@@ -140,6 +142,8 @@ export default function AiBrainstormingAssistant() {
     }
   };
 
+  // --- UTILITY FUNCTIONS (handleCopy, handleDownload, handleReset) ---
+  // The logic inside these functions remains unchanged.
   const handleCopyIdeas = async () => {
     if (!generatedIdeas) return;
     try {
@@ -149,25 +153,26 @@ export default function AiBrainstormingAssistant() {
         description: "Generated ideas copied to clipboard.",
       });
     } catch (error) {
-      const textarea = document.createElement("textarea");
-      textarea.value = generatedIdeas;
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand("copy");
-        toast({
-          title: "Copied!",
-          description: "Ideas copied to clipboard (fallback).",
-        });
-      } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Unable to copy to clipboard.",
-          variant: "destructive",
-        });
-      } finally {
-        document.body.removeChild(textarea);
-      }
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = generatedIdeas;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          toast({
+            title: "Copied!",
+            description: "Ideas copied to clipboard (fallback).",
+          });
+        } catch (err) {
+          toast({
+            title: "Copy failed",
+            description: "Unable to copy to clipboard.",
+            variant: "destructive",
+          });
+        } finally {
+          document.body.removeChild(textarea);
+        }
     }
   };
 
@@ -177,9 +182,7 @@ export default function AiBrainstormingAssistant() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `brainstorming-ideas-${
-      new Date().toISOString().split("T")[0]
-    }.txt`;
+    a.download = `brainstorming-ideas-${new Date().toISOString().split("T")[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -198,7 +201,7 @@ export default function AiBrainstormingAssistant() {
     setIsGenerating(false);
     toast({
       title: "Tool Reset",
-      description: "Ready to brainstorm new ideas.",
+      description: "Ready for your next big idea!",
     });
   };
 
@@ -206,10 +209,10 @@ export default function AiBrainstormingAssistant() {
     <ToolLayout
       title="AI Brainstorming Assistant"
       description="Generate unique and creative ideas for various purposes with AI assistance."
-      icon={<Brain className="text-white text-2xl" />} // Using Brain icon
-      iconBg="bg-gradient-to-br from-indigo-500 to-pink-500" // A new creative gradient
+      icon={<Brain className="text-white" />}
+      iconBg="bg-gradient-to-br from-teal-400 to-cyan-500"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Input Card */}
         <motion.div
           initial="hidden"
@@ -217,17 +220,15 @@ export default function AiBrainstormingAssistant() {
           viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-indigo-500/10 text-white">
+          <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-teal-500/10">
             <CardHeader>
-              <CardTitle className="text-indigo-400">
-                Generate New Ideas
+              <CardTitle className="text-teal-600">
+                Start Your Brainstorm
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
-                {" "}
-                {/* Topic input takes full width */}
-                <Label htmlFor="topic-input" className="text-slate-400">
+                <Label htmlFor="topic-input" className="text-slate-600 font-medium">
                   Topic / Keywords
                 </Label>
                 <Input
@@ -235,13 +236,13 @@ export default function AiBrainstormingAssistant() {
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g., 'future of remote work', 'healthy fast food options', 'sci-fi story about time travel'"
-                  className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 rounded-md shadow-sm"
+                  placeholder="e.g., 'sustainable packaging', 'fantasy novel for young adults'"
+                  className="w-full font-sans text-base bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 rounded-md shadow-sm"
                   disabled={isGenerating}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="idea-type-select" className="text-slate-400">
+                <Label htmlFor="idea-type-select" className="text-slate-600 font-medium">
                   Type of Ideas
                 </Label>
                 <Select
@@ -251,39 +252,25 @@ export default function AiBrainstormingAssistant() {
                 >
                   <SelectTrigger
                     id="idea-type-select"
-                    className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 rounded-md shadow-sm"
+                    className="w-full font-sans text-base bg-white border-slate-300 text-slate-800 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 rounded-md shadow-sm"
                   >
                     <SelectValue placeholder="Select idea type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#202230] text-white border border-[#363A4D]">
+                  <SelectContent className="bg-white text-slate-800 border-slate-200">
                     <SelectItem value="General Ideas">General Ideas</SelectItem>
-                    <SelectItem value="Blog Post Ideas">
-                      Blog Post Ideas
-                    </SelectItem>
-                    <SelectItem value="Startup Concepts">
-                      Startup Concepts
-                    </SelectItem>
+                    <SelectItem value="Blog Post Ideas">Blog Post Ideas</SelectItem>
+                    <SelectItem value="Startup Concepts">Startup Concepts</SelectItem>
                     <SelectItem value="Story Plots">Story Plots</SelectItem>
-                    <SelectItem value="Marketing Slogans">
-                      Marketing Slogans
-                    </SelectItem>
-                    <SelectItem value="Product Features">
-                      Product Features
-                    </SelectItem>
-                    <SelectItem value="Problem Solutions">
-                      Problem Solutions
-                    </SelectItem>
-                    <SelectItem value="Creative Writing Prompts">
-                      Creative Writing Prompts
-                    </SelectItem>
-                    <SelectItem value="Social Media Content Ideas">
-                      Social Media Content Ideas
-                    </SelectItem>
+                    <SelectItem value="Marketing Slogans">Marketing Slogans</SelectItem>
+                    <SelectItem value="Product Features">Product Features</SelectItem>
+                    <SelectItem value="Problem Solutions">Problem Solutions</SelectItem>
+                    <SelectItem value="Creative Writing Prompts">Creative Writing Prompts</SelectItem>
+                    <SelectItem value="Social Media Content Ideas">Social Media Content Ideas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="num-ideas-select" className="text-slate-400">
+                <Label htmlFor="num-ideas-select" className="text-slate-600 font-medium">
                   Number of Ideas
                 </Label>
                 <Select
@@ -293,11 +280,11 @@ export default function AiBrainstormingAssistant() {
                 >
                   <SelectTrigger
                     id="num-ideas-select"
-                    className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 rounded-md shadow-sm"
+                    className="w-full font-sans text-base bg-white border-slate-300 text-slate-800 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 rounded-md shadow-sm"
                   >
                     <SelectValue placeholder="Select number" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#202230] text-white border border-[#363A4D]">
+                  <SelectContent className="bg-white text-slate-800 border-slate-200">
                     <SelectItem value="3">3</SelectItem>
                     <SelectItem value="5">5</SelectItem>
                     <SelectItem value="7">7</SelectItem>
@@ -305,21 +292,22 @@ export default function AiBrainstormingAssistant() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2 text-center">
+              <div className="md:col-span-2 text-center pt-2">
                 <Button
                   onClick={handleGenerateIdeas}
                   disabled={isGenerating || !topic.trim()}
                   size="lg"
-                  className="bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white shadow-lg shadow-indigo-500/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                  className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-cyan-500/40 transform hover:scale-105 transition-all duration-300 rounded-full px-10 py-3 text-base font-semibold"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Generating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" /> Brainstorm Ideas
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Brainstorm Ideas
                     </>
                   )}
                 </Button>
@@ -332,25 +320,47 @@ export default function AiBrainstormingAssistant() {
         <AnimatePresence mode="wait">
           {(generatedIdeas || isGenerating) && (
             <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={cardInViewVariants}
+                key="result-card"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={cardInViewVariants}
             >
-              <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-pink-500/10 text-white">
-                <CardHeader>
-                  <CardTitle className="text-pink-400">
+              <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-cyan-500/10">
+                <CardHeader className="flex flex-row justify-between items-center">
+                  <CardTitle className="text-cyan-700">
                     Your Brainstormed Ideas
                   </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleCopyIdeas}
+                      disabled={!generatedIdeas || isGenerating}
+                      size="sm"
+                      variant="outline"
+                      className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full"
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Copy
+                    </Button>
+                    <Button
+                      onClick={handleDownloadIdeas}
+                      disabled={!generatedIdeas || isGenerating}
+                      size="sm"
+                      variant="outline"
+                      className="border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-full"
+                    >
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {isGenerating ? (
-                    <div className="min-h-[200px] flex items-center justify-center text-slate-400">
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />{" "}
-                      Brainstorming ideas...
+                    <div className="min-h-[250px] flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-lg">
+                      <Loader2 className="h-8 w-8 animate-spin text-teal-500 mb-3" />
+                      <p className="font-semibold text-lg">Thinking up some great ideas...</p>
+                      <p>This should only take a moment.</p>
                     </div>
                   ) : (
-                    <div className="min-h-[200px] p-4 bg-[#141624] border border-[#363A4D] rounded-md text-white whitespace-pre-wrap break-words overflow-auto max-h-[600px]">
+                    <div className="min-h-[250px] p-4 bg-slate-50/70 border border-slate-200 rounded-lg max-h-[600px] overflow-y-auto">
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={generatedIdeas || "empty"}
@@ -358,6 +368,7 @@ export default function AiBrainstormingAssistant() {
                           animate="animate"
                           exit="exit"
                           variants={resultVariants}
+                          className="prose prose-sm lg:prose-base prose-slate max-w-none"
                         >
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {generatedIdeas || ""}
@@ -366,32 +377,14 @@ export default function AiBrainstormingAssistant() {
                       </AnimatePresence>
                     </div>
                   )}
-
-                  <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      onClick={handleCopyIdeas}
-                      disabled={!generatedIdeas || isGenerating}
-                      size="sm"
-                      className="bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white shadow-md transition-all duration-200 rounded-full px-4 py-2"
-                    >
-                      <Copy className="w-4 h-4 mr-1" /> Copy
-                    </Button>
-                    <Button
-                      onClick={handleDownloadIdeas}
-                      disabled={!generatedIdeas || isGenerating}
-                      size="sm"
-                      className="bg-gradient-to-r from-pink-500 to-indigo-500 text-black font-semibold hover:from-pink-600 hover:to-indigo-600 shadow-md transition-all duration-200 rounded-full px-4 py-2"
-                    >
-                      <Download className="w-4 h-4 mr-1" /> Download
-                    </Button>
-                  </div>
-                  <div className="mt-4 text-center">
+                   <div className="mt-6 text-center">
                     <Button
                       onClick={handleReset}
                       size="lg"
-                      className="bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white shadow-lg shadow-gray-500/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                      variant="ghost"
+                      className="text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-full px-8 py-3 font-semibold"
                     >
-                      <RefreshCw className="mr-2 h-4 w-4" /> Generate New Ideas
+                      <RefreshCw className="mr-2 h-4 w-4" /> Start Over & Reset
                     </Button>
                   </div>
                 </CardContent>
@@ -402,30 +395,25 @@ export default function AiBrainstormingAssistant() {
 
         {/* Tips Card */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={cardInViewVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={cardInViewVariants}
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#FFD700]/10 text-white">
-            <CardContent className="p-6">
-              <h4 className="font-semibold text-[#FFD700] mb-3 text-lg">
-                Tips for Effective Brainstorming
-              </h4>
-              <ul className="text-slate-400 space-y-2 text-sm list-disc list-inside">
-                <li>Be specific with your topic to get more targeted ideas.</li>
-                <li>
-                  Experiment with different "Type of Ideas" to explore various
-                  angles.
-                </li>
-                <li>
-                  Don't filter ideas initially; quantity over quality in early
-                  stages.
-                </li>
-                <li>
-                  Use the generated ideas as a springboard for further thought.
-                </li>
-              </ul>
+          <Card className="bg-amber-50 border border-amber-200/80 rounded-xl shadow-lg shadow-amber-500/10">
+            <CardContent className="p-6 flex items-start gap-4">
+                <Lightbulb className="w-8 h-8 text-amber-500 mt-1 flex-shrink-0" />
+                <div>
+                  <h4 className="font-semibold text-amber-700 mb-2 text-lg">
+                    Tips for Effective Brainstorming
+                  </h4>
+                  <ul className="text-amber-900/80 space-y-1.5 text-sm list-disc list-outside ml-4">
+                    <li>Be specific with your topic to get more targeted ideas.</li>
+                    <li>Experiment with different "Type of Ideas" to explore various angles.</li>
+                    <li>Don't filter ideas initially—quantity can lead to quality.</li>
+                    <li>Use the generated ideas as a springboard for further, deeper thought.</li>
+                  </ul>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

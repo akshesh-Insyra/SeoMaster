@@ -6,6 +6,7 @@ import {
   RefreshCw,
   Copy,
   Download,
+  FileSignature, // A more specific icon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +15,16 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import ToolLayout from "@/components/ToolLayout";
 import { motion, AnimatePresence } from "framer-motion";
-
-// For rendering Markdown results
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
+// Light Theme Palette Notes:
+// - Page Background: bg-slate-50
+// - Card Background: bg-white
+// - Text: text-slate-800 (Primary), text-slate-700 (Secondary)
+// - Borders: border-slate-200/300
+// - Accent Gradient: Blue-500 to Teal-500
+// - Tips/Info Accent: Amber
 
 export default function CoverLetterGenerator() {
   const [resumeSummary, setResumeSummary] = useState("");
@@ -28,7 +35,6 @@ export default function CoverLetterGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Framer Motion variants
   const cardInViewVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -39,50 +45,48 @@ export default function CoverLetterGenerator() {
   };
 
   const resultVariants = {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, scale: 0.95, y: 10 },
     animate: {
       opacity: 1,
+      scale: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: "easeIn" } },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      y: -10,
+      transition: { duration: 0.2, ease: "easeIn" },
+    },
   };
 
+  // --- Core logic functions (handleGenerate, handleCopy, etc.) are unchanged ---
   const handleGenerateCoverLetter = async () => {
     if (!resumeSummary.trim() || !jobDescription.trim()) {
       toast({
         title: "Missing Information",
-        description:
-          "Please provide both your resume summary and the job description.",
+        description: "Please provide your skills and the job description.",
         variant: "destructive",
       });
       return;
     }
-
     setIsGenerating(true);
-    setGeneratedCoverLetter(null); // Clear previous result
+    setGeneratedCoverLetter(null);
 
     try {
-      const prompt = `Generate a professional and compelling cover letter based on the following candidate's resume summary and job description.
-      
-      Focus on highlighting how the candidate's skills and experiences align with the requirements of the job.
-      Structure the letter with an introduction, body paragraphs detailing relevant qualifications, and a strong conclusion.
-      Keep it concise and impactful.
-
+      const prompt = `Generate a professional cover letter based on the candidate's skills and the job description. Highlight how the candidate's experience aligns with the job requirements. Structure it with an introduction, body, and a strong conclusion.
       ---
       **Candidate's Resume Summary/Key Skills:**
       ${resumeSummary}
-
       ---
       **Job Description:**
       ${jobDescription}
-      ---
-      `;
+      ---`;
 
       const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       };
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // Ensure this is set up
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
@@ -90,16 +94,9 @@ export default function CoverLetterGenerator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const geminiResult = await response.json();
 
-      if (
-        geminiResult.candidates &&
-        geminiResult.candidates.length > 0 &&
-        geminiResult.candidates[0].content &&
-        geminiResult.candidates[0].content.parts &&
-        geminiResult.candidates[0].content.parts.length > 0
-      ) {
+      if (geminiResult.candidates?.[0]?.content?.parts?.[0]?.text) {
         const letterText =
           geminiResult.candidates[0].content.parts[0].text.trim();
         setGeneratedCoverLetter(letterText);
@@ -108,19 +105,18 @@ export default function CoverLetterGenerator() {
           description: "Your tailored cover letter is ready.",
         });
       } else {
-        console.error("Unexpected API response structure:", geminiResult);
+        console.error("API Error:", geminiResult);
         toast({
           title: "Generation Failed",
-          description: "Could not generate cover letter. Please try again.",
+          description: "Could not generate the letter. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error("Error generating cover letter:", error);
+      console.error("Fetch Error:", error);
       toast({
-        title: "Generation Error",
-        description:
-          "An error occurred while connecting to the AI. Please try again.",
+        title: "Connection Error",
+        description: "Could not connect to the AI.",
         variant: "destructive",
       });
     } finally {
@@ -134,10 +130,9 @@ export default function CoverLetterGenerator() {
       await navigator.clipboard.writeText(generatedCoverLetter);
       toast({
         title: "Copied!",
-        description: "Generated cover letter copied to clipboard.",
+        description: "Cover letter copied to clipboard.",
       });
     } catch (error) {
-      // Fallback for older browsers or iframes without clipboard API access
       const textarea = document.createElement("textarea");
       textarea.value = generatedCoverLetter;
       document.body.appendChild(textarea);
@@ -146,14 +141,10 @@ export default function CoverLetterGenerator() {
         document.execCommand("copy");
         toast({
           title: "Copied!",
-          description: "Cover letter copied to clipboard (fallback).",
+          description: "Cover letter copied (fallback).",
         });
       } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Unable to copy to clipboard.",
-          variant: "destructive",
-        });
+        toast({ title: "Copy Failed", variant: "destructive" });
       } finally {
         document.body.removeChild(textarea);
       }
@@ -173,7 +164,7 @@ export default function CoverLetterGenerator() {
     URL.revokeObjectURL(url);
     toast({
       title: "Downloaded!",
-      description: "Cover letter text file downloaded successfully.",
+      description: "Cover letter saved as a .txt file.",
     });
   };
 
@@ -184,61 +175,68 @@ export default function CoverLetterGenerator() {
     setIsGenerating(false);
     toast({
       title: "Tool Reset",
-      description: "Ready to generate a new cover letter.",
+      description: "Ready for a new cover letter.",
     });
   };
 
   return (
     <ToolLayout
       title="AI Cover Letter Generator"
-      description="Generate tailored and professional cover letters for any job application using AI."
-      icon={<Mail className="text-white text-2xl" />}
-      iconBg="bg-gradient-to-br from-purple-500 to-indigo-500" // A professional gradient
+      description="Generate tailored and professional cover letters for any job application."
+      icon={<FileSignature className="text-white" />}
+      iconBg="bg-gradient-to-br from-blue-500 to-teal-500"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Input Card */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
+          initial="hidden"
+          animate="visible"
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-purple-500/10 text-white">
+          <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-blue-500/10">
             <CardHeader>
-              <CardTitle className="text-purple-400">
-                Generate Your Cover Letter
+              <CardTitle className="text-blue-600">
+                Enter Your Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="resume-summary" className="text-slate-400">
-                  Your Resume Summary / Key Skills
-                </Label>
-                <Textarea
-                  id="resume-summary"
-                  value={resumeSummary}
-                  onChange={(e) => setResumeSummary(e.target.value)}
-                  placeholder="e.g., 'Full Stack Developer with 5 years experience in React, Node.js, and MongoDB, building scalable web applications.' or paste key bullet points from your resume."
-                  rows={10}
-                  className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 rounded-md shadow-sm"
-                  disabled={isGenerating}
-                />
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="resume-summary"
+                    className="font-medium text-slate-700"
+                  >
+                    Your Resume Summary / Key Skills
+                  </Label>
+                  <Textarea
+                    id="resume-summary"
+                    value={resumeSummary}
+                    onChange={(e) => setResumeSummary(e.target.value)}
+                    placeholder="e.g., 'Full Stack Developer with 5 years of experience in React, Node.js, and MongoDB...' or paste key bullet points from your resume."
+                    rows={10}
+                    className="bg-white"
+                    disabled={isGenerating}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="job-description"
+                    className="font-medium text-slate-700"
+                  >
+                    Job Description
+                  </Label>
+                  <Textarea
+                    id="job-description"
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste the full job description here..."
+                    rows={10}
+                    className="bg-white"
+                    disabled={isGenerating}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="job-description" className="text-slate-400">
-                  Job Description
-                </Label>
-                <Textarea
-                  id="job-description"
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the full job description here..."
-                  rows={10}
-                  className="w-full font-sans text-base bg-[#141624] border border-[#363A4D] text-white placeholder-slate-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 rounded-md shadow-sm"
-                  disabled={isGenerating}
-                />
-              </div>
-              <div className="md:col-span-2 text-center">
+              <div className="mt-6 text-center">
                 <Button
                   onClick={handleGenerateCoverLetter}
                   disabled={
@@ -247,16 +245,16 @@ export default function CoverLetterGenerator() {
                     !jobDescription.trim()
                   }
                   size="lg"
-                  className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-lg shadow-purple-500/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                  className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white shadow-lg shadow-blue-500/40 transform hover:scale-105 transition-all duration-300 rounded-full px-10 py-3 text-base font-semibold"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />{" "}
                       Generating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" /> Generate Cover
+                      <Sparkles className="mr-2 h-5 w-5" /> Generate Cover
                       Letter
                     </>
                   )}
@@ -266,70 +264,74 @@ export default function CoverLetterGenerator() {
           </Card>
         </motion.div>
 
-        {/* Generated Cover Letter Result Card */}
-        <AnimatePresence mode="wait">
+        {/* Result Card */}
+        <AnimatePresence>
           {(generatedCoverLetter || isGenerating) && (
             <motion.div
+              variants={cardInViewVariants}
               initial="hidden"
               animate="visible"
               exit="hidden"
-              variants={cardInViewVariants}
             >
-              <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-indigo-500/10 text-white">
-                <CardHeader>
-                  <CardTitle className="text-indigo-400">
+              <Card className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-teal-500/10">
+                <CardHeader className="flex flex-row justify-between items-center">
+                  <CardTitle className="text-teal-600">
                     Your Generated Cover Letter
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isGenerating ? (
-                    <div className="min-h-[200px] flex items-center justify-center text-slate-400">
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Drafting
-                      your letter...
-                    </div>
-                  ) : (
-                    <div className="min-h-[200px] p-4 bg-[#141624] border border-[#363A4D] rounded-md text-white whitespace-pre-wrap break-words overflow-auto max-h-[600px]">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={generatedCoverLetter || "empty"}
-                          initial="initial"
-                          animate="animate"
-                          exit="exit"
-                          variants={resultVariants}
-                        >
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {generatedCoverLetter || ""}
-                          </ReactMarkdown>
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex justify-end gap-2">
+                  <div className="flex gap-2">
                     <Button
                       onClick={handleCopyLetter}
                       disabled={!generatedCoverLetter || isGenerating}
                       size="sm"
-                      className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-md transition-all duration-200 rounded-full px-4 py-2"
+                      variant="outline"
+                      className="rounded-full"
                     >
-                      <Copy className="w-4 h-4 mr-1" /> Copy
+                      <Copy className="w-4 h-4 mr-2" /> Copy
                     </Button>
                     <Button
                       onClick={handleDownloadLetter}
                       disabled={!generatedCoverLetter || isGenerating}
                       size="sm"
-                      className="bg-gradient-to-r from-indigo-500 to-purple-500 text-black font-semibold hover:from-indigo-600 hover:to-purple-600 shadow-md transition-all duration-200 rounded-full px-4 py-2"
+                      variant="outline"
+                      className="rounded-full"
                     >
-                      <Download className="w-4 h-4 mr-1" /> Download
+                      <Download className="w-4 h-4 mr-2" /> Download
                     </Button>
                   </div>
-                  <div className="mt-4 text-center">
+                </CardHeader>
+                <CardContent>
+                  {isGenerating ? (
+                    <div className="min-h-[300px] flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-lg">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-3" />
+                      <p className="font-semibold text-lg">
+                        Drafting your perfect letter...
+                      </p>
+                    </div>
+                  ) : (
+                    <motion.div
+                      key={generatedCoverLetter}
+                      variants={resultVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      className="p-4 bg-slate-50/70 border border-slate-200 rounded-lg max-h-[600px] overflow-y-auto"
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        className="prose prose-sm lg:prose-base prose-slate max-w-none"
+                      >
+                        {generatedCoverLetter || ""}
+                      </ReactMarkdown>
+                    </motion.div>
+                  )}
+                  <div className="mt-6 text-center">
                     <Button
                       onClick={handleReset}
                       size="lg"
-                      className="bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white shadow-lg shadow-gray-500/30 transform hover:scale-105 transition-all duration-300 rounded-full px-8 py-3 font-semibold"
+                      variant="ghost"
+                      className="text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-full px-8 py-3 font-semibold"
                     >
-                      <RefreshCw className="mr-2 h-4 w-4" /> Generate New Letter
+                      <RefreshCw className="mr-2 h-4 w-4" /> Start Over
                     </Button>
                   </div>
                 </CardContent>
@@ -340,32 +342,31 @@ export default function CoverLetterGenerator() {
 
         {/* Tips Card */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
           variants={cardInViewVariants}
+          initial="hidden"
+          animate="visible"
         >
-          <Card className="bg-[#1A1C2C] border border-[#2d314d] backdrop-blur-md rounded-xl shadow-lg shadow-[#FFD700]/10 text-white">
+          <Card className="bg-amber-50 border border-amber-200/80 rounded-xl shadow-lg shadow-amber-500/10">
             <CardContent className="p-6">
-              <h4 className="font-semibold text-[#FFD700] mb-3 text-lg">
+              <h4 className="font-semibold text-amber-700 mb-3 text-lg">
                 Tips for a Strong Cover Letter
               </h4>
-              <ul className="text-slate-400 space-y-2 text-sm list-disc list-inside">
+              <ul className="text-amber-900/80 space-y-2 text-sm list-disc list-outside ml-4">
                 <li>
-                  Provide a concise yet comprehensive summary of your relevant
-                  skills and experience.
+                  Provide a concise summary of your most relevant skills and
+                  experiences.
                 </li>
                 <li>
-                  Paste the full job description to help the AI tailor the
-                  letter accurately.
+                  Paste the complete job description for the most accurate and
+                  tailored letter.
                 </li>
                 <li>
-                  Always review and personalize the generated letter to reflect
-                  your unique voice and specific interest in the role.
+                  Always review and personalize the generated letter to add your
+                  own voice.
                 </li>
                 <li>
-                  Highlight achievements and quantifiable results where
-                  possible.
+                  Highlight achievements with quantifiable results (e.g.,
+                  "increased sales by 15%").
                 </li>
               </ul>
             </CardContent>
